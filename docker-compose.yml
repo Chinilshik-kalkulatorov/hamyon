@@ -1,0 +1,29 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: hamyon
+      POSTGRES_USER: hamyon
+      POSTGRES_PASSWORD: hamyon
+    ports:
+      - "5544:5432"  # non-default host port to avoid clashing with local postgres
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hamyon"]
+      interval: 2s
+      timeout: 2s
+      retries: 15
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6380:6379"  # non-default host port to avoid clashing with local redis
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 2s
+      retries: 15
+
+volumes:
+  pgdata:

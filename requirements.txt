@@ -1,0 +1,12 @@
+Django>=5.2,<5.3
+djangorestframework>=3.16
+psycopg[binary]>=3.2
+redis>=5.0
+celery>=5.5
+PyJWT>=2.9
+qrcode[pil]>=8.0
+python-dotenv>=1.0
+requests>=2.32
+pytest>=8.3
+pytest-django>=4.11
+fakeredis>=2.26
