@@ -2,7 +2,7 @@
 
 # 💳 Hamyon
 
-**A ledger-based wallet backend — balance is never stored, always derived from an immutable log.**
+**Ledger asosidagi hamyon backend — balans hech qachon saqlanmaydi, har doim o‘zgarmas jurnaldan hisoblab chiqiladi.**
 
 ![Python](https://img.shields.io/badge/Python-3.10-3776AB?logo=python&logoColor=white)
 ![Django](https://img.shields.io/badge/Django-5.2-092E20?logo=django&logoColor=white)
@@ -10,99 +10,117 @@
 ![Postgres](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)
 ![Redis](https://img.shields.io/badge/Redis-7-DC382D?logo=redis&logoColor=white)
 ![Celery](https://img.shields.io/badge/Celery-5.5-37814A?logo=celery&logoColor=white)
-![Tests](https://img.shields.io/badge/tests-46%20passing-2ee6a8)
+![Tests](https://img.shields.io/badge/testlar-46%20passing-2ee6a8)
+
+**🇺🇿 O‘zbekcha** · [🇬🇧 English](README.en.md)
 
 </div>
 
 ---
 
-## The core idea
+## Asosiy g‘oya
 
-A wallet has **no `balance` field**. Every money event is an immutable row in an append-only ledger; the balance is computed from those rows on every read.
+Hamyonda **`balance` maydoni yo‘q**. Har bir pul harakati append-only jurnalga o‘zgarmas yozuv sifatida qo‘shiladi; balans esa har o‘qishda shu yozuvlardan hisoblanadi.
 
 ```python
-# ❌ Wrong — a mutable counter. One crash mid-write = lost money, no audit trail.
+# ❌ Noto‘g‘ri — o‘zgaruvchan hisoblagich. Yozuv o‘rtasida crash = pul yo‘qoladi, audit yo‘q.
 wallet.balance += amount; wallet.save()
 
-# ✅ Right — append an event. Balance = SUM(credits) − SUM(debits).
+# ✅ To‘g‘ri — hodisani qo‘shamiz. Balans = SUM(credit) − SUM(debit).
 LedgerEntry.objects.create(wallet=w, type="credit", amount=50_000)
 ```
 
-**Three rules, enforced in code:**
-1. Every balance change is a `LedgerEntry` — no silent writes.
-2. Entries are append-only — `save()`/`delete()` on an existing row raise; bulk `update()`/`delete()` are blocked at the manager.
-3. Balance is always derived on read, never stored.
+**Kodda ta’minlangan uchta qoida:**
+1. Har qanday balans o‘zgarishi — bu `LedgerEntry`. Yashirin yozuvlar yo‘q.
+2. Yozuvlar faqat qo‘shiladi — mavjud yozuvda `save()`/`delete()` xato beradi; ommaviy `update()`/`delete()` manager darajasida bloklangan.
+3. Balans har doim o‘qishda hisoblanadi, hech qachon saqlanmaydi.
 
 ---
 
-## Quickstart
+## Tezkor ishga tushirish
 
 ```bash
 docker compose up -d            # PostgreSQL :5544, Redis :6380
 python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
-make migrate && make seed       # demo users: alice / bob  (password: demo123)
-make run                        # API at http://localhost:8000
-make worker                     # Celery: push notifications, CSV export
-make beat                       # Celery beat: expire stale requests
-make test                       # 46 tests — sqlite + fakeredis, no docker needed
+make migrate && make seed       # demo foydalanuvchilar: alice / bob  (parol: demo123)
+make run                        # API: http://localhost:8000
+make worker                     # Celery: push bildirishnomalar, CSV eksport
+make beat                       # Celery beat: eskirgan so‘rovlarni bekor qilish
+make test                       # 46 ta test — sqlite + fakeredis, docker shart emas
 ```
 
-Telegram runs in **console-imitation mode** by default (OTP codes and push messages are printed to the server log). Set `TELEGRAM_*_BOT_TOKEN` in `.env` to switch to the real Bot API — the OTP bot and the push bot are deliberately separate modules with separate tokens.
+Telegram standart holatda **konsol-imitatsiya rejimida** ishlaydi (OTP kodlar va push xabarlar server logiga chiqariladi). Haqiqiy Bot API’ga o‘tish uchun `.env` ga `TELEGRAM_*_BOT_TOKEN` qo‘ying — OTP bot va push bot ataylab alohida modullar, alohida tokenlar bilan.
 
 ---
 
-## Features
+## Imkoniyatlar
 
-| Module | What it does |
+| Modul | Vazifasi |
 |---|---|
-| **Ledger / Balance** | `Wallet`, `LedgerEntry`, `Transfer`; `balance / available / held` in one aggregated query, cached 5 s. |
-| **Payments** | Top-up & withdraw with OTP; `PaymentRequest` state machine; holds released by reversal entries. |
-| **P2P + QR** | Atomic two-leg transfers; static QR (wallet id) + dynamic QR (signed single-use JWT). |
-| **OTP** | 6-digit code over Telegram; only `sha256(code+pepper)` in Redis; TTL 90 s, 3 attempts → 10-min lock; single-use. |
-| **KYC** | `unverified / basic / full` levels with configurable 30-day spend limits; approve/reject state machine. |
-| **Blacklist** | Block by user / phone / wallet; middleware gate before every transaction; full audit trail. |
-| **History** | Cursor pagination only (offset banned); type/date/status filters; CSV export via Celery. |
-| **Notifications** | `post_save` on `LedgerEntry` → Celery → Telegram push, with a delivery log. |
+| **Ledger / Balance** | `Wallet`, `LedgerEntry`, `Transfer`; `balance / available / held` bitta aggregat so‘rovda, 5 s kesh. |
+| **Payments** | OTP bilan to‘ldirish va yechib olish; `PaymentRequest` holatlar mashinasi; hold’lar reversal yozuv bilan ochiladi. |
+| **P2P + QR** | Atomar ikki tomonlama o‘tkazmalar; static QR (wallet id) + dynamic QR (imzolangan, bir martalik JWT). |
+| **OTP** | Telegram orqali 6 xonali kod; Redis’da faqat `sha256(code+pepper)`; TTL 90 s, 3 urinish → 10 daqiqa blok; bir martalik. |
+| **KYC** | `unverified / basic / full` darajalar, sozlanadigan 30 kunlik limitlar; approve/reject holatlar mashinasi. |
+| **Blacklist** | Foydalanuvchi / telefon / hamyon bo‘yicha bloklash; har tranzaksiyadan oldin middleware; to‘liq audit jurnali. |
+| **History** | Faqat cursor paginatsiya (offset taqiqlangan); tur/sana/holat filtrlari; Celery orqali CSV eksport. |
+| **Notifications** | `LedgerEntry`da `post_save` → Celery → Telegram push, yetkazib berish jurnali bilan. |
 
 ---
 
-## Architecture highlights
+## Arxitektura yechimlari
 
-- **Money is integer tiyin** (1 UZS = 100), with a DB `CHECK (amount > 0)` — never floats.
-- **Balance in one round-trip** — four filtered `SUM`s in a single `aggregate()`; financial decisions bypass the cache and run under `select_for_update()`.
-- **Idempotency** — `idempotency_key` is unique at the DB level; a retry returns the existing result, no duplicates even under a concurrent race.
-- **Atomic transfers** — debit + credit + `Transfer` row in one transaction; both wallets locked in stable id order to avoid deadlocks.
-- **Three guards, in order** — blacklist → KYC → balance/limit; blocked actors get an **empty 403** (no detail leaked).
-- **Cursor pagination** — `base64(created_at:id)` seek on an index, constant-time at any depth; a test pins the endpoint to **exactly 2 SQL queries** so offset pagination can't sneak back in.
-- **Explicit state machines** — `PaymentRequest` / `TransferRequest` / `KYCApplication` transitions are methods; illegal transitions raise, never pass silently.
+- **Pul — butun son tiyin** (1 so‘m = 100), DB `CHECK (amount > 0)` bilan — hech qachon float emas.
+- **Balans bitta so‘rovda** — bitta `aggregate()` ichida to‘rtta filtrlangan `SUM`; moliyaviy qarorlar keshni chetlab o‘tib, `select_for_update()` ostida bajariladi.
+- **Idempotentlik** — `idempotency_key` DB darajasida unique; takroriy so‘rov mavjud natijani qaytaradi, parallel poyga vaqtida ham dublikat yo‘q.
+- **Atomar o‘tkazmalar** — debit + credit + `Transfer` bitta tranzaksiyada; deadlock’ning oldini olish uchun ikkala hamyon barqaror id tartibida lock qilinadi.
+- **Uchta guard, tartib bilan** — blacklist → KYC → balans/limit; bloklangan foydalanuvchi **bo‘sh 403** oladi (hech qanday ma’lumot oshkor qilinmaydi).
+- **Cursor paginatsiya** — `base64(created_at:id)` indeks bo‘yicha seek, istalgan chuqurlikda doimiy vaqt; test endpointni **aniq 2 ta SQL so‘rovga** bog‘laydi, shunda offset paginatsiya qaytib kira olmaydi.
+- **Aniq holatlar mashinalari** — `PaymentRequest` / `TransferRequest` / `KYCApplication` o‘tishlari metodlar; noto‘g‘ri o‘tish xato beradi, hech qachon jim o‘tmaydi.
 
 ---
 
 ## API
 
-Auth: `Authorization: Token <key>` (obtain via `POST /api/auth/token/`). All amounts in tiyin.
+Avtorizatsiya: `Authorization: Token <key>` (`POST /api/auth/token/` orqali olinadi). Barcha summalar tiyinda.
 
 | Method | Endpoint | |
 |---|---|---|
-| `GET` | `/api/wallet/{id}/balance/` | derived balance (read-only) |
-| `GET` | `/api/wallet/{id}/history/` | cursor-paginated ledger (`?cursor=&type=&status=&from=&to=`) |
-| `POST` | `/api/wallet/{id}/history/export/` | CSV export → Telegram link (Celery) |
-| `GET` | `/api/wallet/{id}/qr/static/` | reusable receive QR (PNG) |
-| `POST` | `/api/payments/initiate/` · `/{id}/confirm/` · `/{id}/cancel/` | top-up / withdraw with OTP |
-| `POST` | `/api/p2p/transfer/` · `/transfers/{id}/confirm/` | wallet-to-wallet with OTP |
-| `POST` | `/api/p2p/qr/dynamic/` · `/scan/` | issue / verify single-use payment QR |
-| `POST` | `/api/kyc/submit/` · `/admin/{id}/approve/` · `/reject/` | KYC flow |
-| `POST` | `/api/admin/blacklist/block/` · `/{id}/unblock/` | block / unblock (admin) |
+| `GET` | `/api/wallet/{id}/balance/` | hisoblangan balans (faqat o‘qish) |
+| `GET` | `/api/wallet/{id}/history/` | cursor paginatsiyali jurnal (`?cursor=&type=&status=&from=&to=`) |
+| `POST` | `/api/wallet/{id}/history/export/` | CSV eksport → Telegram havola (Celery) |
+| `GET` | `/api/wallet/{id}/qr/static/` | qayta ishlatiladigan qabul QR (PNG) |
+| `POST` | `/api/payments/initiate/` · `/{id}/confirm/` · `/{id}/cancel/` | OTP bilan to‘ldirish / yechib olish |
+| `POST` | `/api/p2p/transfer/` · `/transfers/{id}/confirm/` | OTP bilan hamyondan hamyonga |
+| `POST` | `/api/p2p/qr/dynamic/` · `/scan/` | bir martalik to‘lov QR yaratish / tekshirish |
+| `POST` | `/api/kyc/submit/` · `/admin/{id}/approve/` · `/reject/` | KYC jarayoni |
+| `POST` | `/api/admin/blacklist/block/` · `/{id}/unblock/` | bloklash / blokdan chiqarish (admin) |
 
 ---
 
-## Tests
+## Deploy (production)
 
-`make test` — 46 tests on sqlite + fakeredis + eager Celery (no docker required): derived balance & holds, append-only enforcement, idempotent retries, full state machines, OTP single-use / lock / hash-only storage, blacklist empty-403, KYC limits & rejection, cursor walk with timestamp ties, the 2-query pin, QR single-use / expiry / tamper, CSV export, notification log.
+Domenli serverda bitta buyruq bilan ko‘tariladi:
+
+```bash
+cp .env.prod.example .env.prod      # sirlar va domeningizni yozing
+make deploy                          # web + db + redis + worker + beat + nginx
+```
+
+`make deploy` ortida: `docker compose --env-file .env.prod -f docker-compose.prod.yml up -d --build`.
+`web` konteyneri o‘zi `migrate` va `collectstatic` ni bajaradi; `.env.prod` da `SEED_DEMO=1` bo‘lsa demo foydalanuvchilar (alice / bob / admin) ham yaratiladi. **nginx** 80-portda turadi: `static/` va `media/` ni o‘zi uzatadi, qolganini `gunicorn` ga proxy qiladi.
+
+Domenni ulash: A-yozuvni server IP’siga yo‘naltiring, `.env.prod` da `DJANGO_ALLOWED_HOSTS` va `CSRF_TRUSTED_ORIGINS` ga domeningizni qo‘shing. HTTPS uchun nginx oldiga `certbot` qo‘shiladi (keyingi qadam). Loglar: `make deploy-logs`, to‘xtatish: `make deploy-down`.
 
 ---
 
-## Tech & layout
+## Testlar
+
+`make test` — sqlite + fakeredis + eager Celery’da **46 ta test** (docker shart emas): hisoblangan balans va hold’lar, append-only ta’minlash, idempotent takrorlar, to‘liq holatlar mashinalari, OTP bir martalik / blok / faqat-hash saqlash, blacklist bo‘sh-403, KYC limitlari va rad etish, bir xil vaqtli yozuvlar bilan cursor yurish, 2-so‘rov bog‘lash, QR bir martalik / muddati / buzilishi, CSV eksport, bildirishnoma jurnali.
+
+---
+
+## Texnologiyalar va tuzilma
 
 `Django 5.2 · DRF · PostgreSQL 16 · Redis 7 · Celery · PyJWT · qrcode · pytest`
 
@@ -110,9 +128,9 @@ Auth: `Authorization: Token <key>` (obtain via `POST /api/auth/token/`). All amo
 config/    settings, urls, celery
 apps/
   users  core  kyc  blacklist  otp  payments  p2p  history  notifications
-tests/     46 tests across all modules
+tests/     barcha modullar bo‘yicha 46 ta test
 ```
 
-## Production notes (out of scope, by design)
+## Production tavsiyalar (ataylab qamrov tashqarisida)
 
-DB-level immutability triggers · ledger partitioning + balance snapshots · transactional outbox for pushes · nightly balance reconciliation · OTP send rate-limiting.
+DB darajasidagi immutability triggerlari · ledger partitsiyalash + balans snapshotlari · push’lar uchun transactional outbox · har kechagi balans reconciliation · OTP yuborishni rate-limiting.

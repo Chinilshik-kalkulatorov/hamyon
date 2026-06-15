@@ -3,6 +3,7 @@ djangorestframework>=3.16
 psycopg[binary]>=3.2
 redis>=5.0
 celery>=5.5
+gunicorn>=23.0
 PyJWT>=2.9
 qrcode[pil]>=8.0
 python-dotenv>=1.0

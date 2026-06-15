@@ -24,3 +24,15 @@ beat:
 
 test:
 	.venv/bin/pytest
+
+# ---- production (docker) ----
+COMPOSE_PROD := docker compose --env-file .env.prod -f docker-compose.prod.yml
+
+deploy:
+	$(COMPOSE_PROD) up -d --build
+
+deploy-down:
+	$(COMPOSE_PROD) down
+
+deploy-logs:
+	$(COMPOSE_PROD) logs -f
