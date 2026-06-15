@@ -10,4 +10,3 @@ staticfiles/
 *.sqlite3
 .DS_Store
 celerybeat-schedule*
-templates/

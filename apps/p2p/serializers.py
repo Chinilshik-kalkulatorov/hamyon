@@ -39,3 +39,7 @@ class DynamicQRSerializer(serializers.Serializer):
 
 class ScanSerializer(serializers.Serializer):
     token = serializers.CharField()
+
+
+class ResolveSerializer(serializers.Serializer):
+    query = serializers.CharField(max_length=64)

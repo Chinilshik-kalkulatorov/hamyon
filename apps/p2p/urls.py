@@ -2,6 +2,7 @@ from django.urls import path
 
 from .views import (
     DynamicQRView,
+    ResolveRecipientView,
     ScanView,
     TransferConfirmView,
     TransferInitiateView,
@@ -10,6 +11,7 @@ from .views import (
 
 urlpatterns = [
     path("transfer/", TransferInitiateView.as_view()),
+    path("resolve/", ResolveRecipientView.as_view()),
     path("transfers/<uuid:pk>/confirm/", TransferConfirmView.as_view()),
     path("transfers/<uuid:pk>/", TransferStatusView.as_view()),
     path("qr/dynamic/", DynamicQRView.as_view()),

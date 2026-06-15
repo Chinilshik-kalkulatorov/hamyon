@@ -12,6 +12,7 @@ from . import qr, services
 from .models import TransferRequest
 from .serializers import (
     DynamicQRSerializer,
+    ResolveSerializer,
     ScanSerializer,
     TransferInitiateSerializer,
     TransferRequestSerializer,
@@ -105,6 +106,38 @@ class DynamicQRView(APIView):
             Wallet, id=serializer.validated_data["wallet_id"], user=request.user
         )
         return Response(qr.issue_dynamic_qr(wallet, serializer.validated_data["amount"]))
+
+
+class ResolveRecipientView(APIView):
+    """Find a recipient's wallet by username or phone — the bank-app way of
+    addressing transfers. Returns only the minimum needed to confirm the
+    recipient: username, masked phone, wallet id."""
+
+    def post(self, request):
+        serializer = ResolveSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        query = serializer.validated_data["query"].strip()
+
+        from django.contrib.auth import get_user_model
+        from django.db.models import Q
+
+        user = (
+            get_user_model()
+            .objects.filter(Q(username__iexact=query) | Q(phone=query))
+            .first()
+        )
+        wallet = user.wallets.order_by("created_at").first() if user else None
+        if wallet is None:
+            return Response({"code": "recipient_not_found"},
+                            status=status.HTTP_404_NOT_FOUND)
+
+        phone = user.phone or ""
+        masked = f"{phone[:5]}•••{phone[-2:]}" if len(phone) > 7 else phone
+        return Response({
+            "username": user.username,
+            "phone_masked": masked,
+            "wallet_id": str(wallet.id),
+        })
 
 
 class ScanView(APIView):

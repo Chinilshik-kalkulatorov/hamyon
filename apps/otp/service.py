@@ -60,6 +60,11 @@ def send_otp(user, purpose: str) -> None:
     pipe.delete(attempts_key)
     pipe.execute()
 
+    # Demo deployment only (off by default): expose the code to the owner via
+    # /api/demo/last-otp/ so the public showcase works without a Telegram bot.
+    if getattr(settings, "OTP_DEMO_ECHO", False):
+        r.set(f"demo:otp:{user.pk}", code, ex=settings.OTP_TTL_SECONDS)
+
     # The only place the raw code leaves this process.
     send_telegram_otp(
         user,

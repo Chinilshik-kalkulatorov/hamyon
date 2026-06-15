@@ -47,7 +47,7 @@ ROOT_URLCONF = "config.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -152,3 +152,8 @@ BLACKLIST_GUARDED_PATH_PREFIXES = ["/api/payments/", "/api/p2p/"]
 
 # Base URL used to build links to exported CSV files.
 EXPORT_BASE_URL = os.getenv("EXPORT_BASE_URL", "http://localhost:8000")
+
+# Demo-only: echo the latest OTP to the user via /api/demo/last-otp/ so the
+# public showcase works without a real Telegram bot. Off by default; OTP
+# verification (hash compare) is unaffected.
+OTP_DEMO_ECHO = os.getenv("OTP_DEMO_ECHO", "0") == "1"

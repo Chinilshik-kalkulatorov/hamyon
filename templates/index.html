@@ -1,0 +1,890 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hamyon — кошелёк</title>
+<style>
+  :root{
+    --bg:#070b18; --card:#10182f; --card2:#0b1226; --line:#222d52; --line2:#2c3a6b;
+    --text:#edf1ff; --muted:#8e9ac6; --dim:#5d6a94;
+    --accent:#2ee6a8; --accent2:#19c98f; --cyan:#3ec7ff;
+    --red:#ff5d78; --amber:#ffb454; --blue:#6ea8ff;
+    --shadow:0 18px 50px rgba(0,0,0,.5);
+    --r:22px;
+  }
+  *{box-sizing:border-box} html,body{margin:0;padding:0}
+  body{
+    background:
+      radial-gradient(900px 600px at 85% -10%, rgba(46,230,168,.10), transparent 60%),
+      radial-gradient(900px 700px at -10% 110%, rgba(62,199,255,.08), transparent 55%),
+      var(--bg);
+    color:var(--text);
+    font:15px/1.5 -apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Inter,Roboto,sans-serif;
+    min-height:100vh; -webkit-font-smoothing:antialiased;
+  }
+  .hidden{display:none!important}
+  button{font:inherit;cursor:pointer;border:0;border-radius:14px;color:var(--text);background:none}
+  input,textarea{font:inherit;color:var(--text);background:var(--card2);
+    border:1px solid var(--line);border-radius:14px;padding:12px 14px;outline:none;width:100%;
+    transition:border-color .15s, box-shadow .15s}
+  input:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(46,230,168,.12)}
+  ::placeholder{color:#525e8e}
+  svg{display:block}
+
+  .btn{width:100%;padding:13px 18px;border-radius:15px;font-weight:650;letter-spacing:.2px;
+       display:flex;align-items:center;justify-content:center;gap:8px;transition:.15s}
+  .btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#03281b}
+  .btn-primary:hover{filter:brightness(1.08);transform:translateY(-1px)}
+  .btn-primary:disabled{opacity:.55;cursor:default;transform:none;filter:none}
+  .btn-ghost{background:transparent;border:1px solid var(--line2)}
+  .btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
+  .busy{position:relative;color:transparent!important}
+  .busy::after{content:"";position:absolute;width:18px;height:18px;border-radius:50%;
+    border:2.5px solid rgba(3,40,27,.3);border-top-color:#03281b;animation:spin .7s linear infinite}
+  .btn-ghost.busy::after{border-color:rgba(255,255,255,.2);border-top-color:var(--accent)}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* ---------- login ---------- */
+  .login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+  .login{width:420px;background:linear-gradient(180deg,#121b38,#0e1530);
+    border:1px solid var(--line);border-radius:28px;padding:36px;box-shadow:var(--shadow);
+    animation:fadeUp .4s ease}
+  .logo{display:flex;align-items:center;gap:13px}
+  .logo-badge{width:46px;height:46px;border-radius:15px;display:grid;place-items:center;
+    background:linear-gradient(135deg,var(--accent),var(--cyan));color:#052b1e;flex:none}
+  .logo h1{font-size:25px;margin:0;letter-spacing:-.3px}
+  .sub{color:var(--muted);margin:6px 0 22px;font-size:13.5px}
+  .demo-accounts{display:grid;gap:10px;margin-bottom:20px}
+  .acc{display:flex;align-items:center;gap:13px;padding:13px 15px;border-radius:17px;
+    background:var(--card2);border:1px solid var(--line);text-align:left;transition:.15s}
+  .acc:hover{border-color:var(--accent);transform:translateY(-1px)}
+  .acc .meta{flex:1}
+  .acc .n{font-weight:650}
+  .acc .d{font-size:12px;color:var(--muted)}
+  .acc .go{color:var(--dim)}
+  .divider{display:flex;align-items:center;gap:12px;color:var(--dim);font-size:12px;margin:4px 0 16px}
+  .divider::before,.divider::after{content:"";flex:1;height:1px;background:var(--line)}
+  .field{margin-bottom:11px}
+  .err{color:var(--red);font-size:13px;min-height:18px;margin-top:10px}
+
+  .avatar{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;
+    font-weight:750;font-size:16px;color:#fff;flex:none}
+  .av-0{background:linear-gradient(135deg,#23bf8a,#108f7c)}
+  .av-1{background:linear-gradient(135deg,#4d7df2,#3f51c9)}
+  .av-2{background:linear-gradient(135deg,#c163e8,#7d4bd6)}
+  .av-3{background:linear-gradient(135deg,#f2884d,#d6593b)}
+
+  /* ---------- app shell ---------- */
+  .top{display:flex;align-items:center;justify-content:space-between;
+    padding:15px 30px;border-bottom:1px solid rgba(34,45,82,.6);
+    background:rgba(7,11,24,.72);backdrop-filter:blur(12px);position:sticky;top:0;z-index:5}
+  .top .logo h1{font-size:18px}
+  .top .logo-badge{width:34px;height:34px;border-radius:11px}
+  .userbox{display:flex;align-items:center;gap:14px}
+  .chip{padding:4px 11px;border-radius:999px;font-size:11.5px;font-weight:750;letter-spacing:.5px}
+  .kyc-full{background:rgba(46,230,168,.13);color:var(--accent)}
+  .kyc-basic{background:rgba(110,168,255,.13);color:var(--blue)}
+  .kyc-unverified{background:#262d47;color:var(--muted)}
+  .uname{font-weight:650}
+  .userbox .avatar{width:34px;height:34px;font-size:14px}
+  .logout{color:var(--muted);font-size:13px;padding:6px}
+  .logout:hover{color:var(--red)}
+
+  .grid{display:grid;grid-template-columns:440px 1fr;gap:26px;max-width:1200px;margin:28px auto;padding:0 26px}
+  @media(max-width:1000px){.grid{grid-template-columns:1fr}}
+
+  /* ---------- balance card ---------- */
+  .balance-card{border-radius:26px;padding:28px;box-shadow:var(--shadow);position:relative;overflow:hidden;
+    background:linear-gradient(130deg,#0d3b2e 0%,#0d2c50 78%);border:1px solid rgba(46,230,168,.25)}
+  .balance-card::before{content:"";position:absolute;inset:0;
+    background:radial-gradient(420px 280px at 88% -20%, rgba(46,230,168,.28), transparent 60%)}
+  .balance-card > *{position:relative}
+  .lbl{color:#93dcc3;font-size:12px;letter-spacing:1.1px;text-transform:uppercase;font-weight:650}
+  .avail{font-size:42px;font-weight:800;margin:8px 0 4px;letter-spacing:-1px;font-variant-numeric:tabular-nums}
+  .avail small{font-size:17px;font-weight:600;color:#93dcc3;letter-spacing:0}
+  .subbal{display:flex;gap:24px;margin-top:14px;color:#b9d3ec;font-size:13px}
+  .subbal b{color:#fff;font-weight:700;font-variant-numeric:tabular-nums}
+  .subbal .warn b{color:var(--amber)}
+  .wallet-id{margin-top:18px;display:flex;align-items:center;gap:9px;font-size:12px;color:#8fb0d4}
+  .wallet-id code{background:rgba(0,0,0,.3);padding:5px 9px;border-radius:9px;font-size:10.5px}
+  .copy{color:var(--accent);font-size:12px;padding:3px 7px;border-radius:8px}
+  .copy:hover{background:rgba(46,230,168,.12)}
+
+  .actions{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:20px}
+  .act{background:var(--card);border:1px solid var(--line);border-radius:19px;padding:17px 8px 14px;
+    display:flex;flex-direction:column;align-items:center;gap:9px;transition:.15s}
+  .act:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 10px 26px rgba(0,0,0,.35)}
+  .act .ico{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;
+    background:linear-gradient(180deg,#16204000,#16204066),var(--card2);color:var(--accent)}
+  .act:nth-child(even) .ico{color:var(--cyan)}
+  .act span{font-size:13px;font-weight:600}
+
+  .kyc-line{margin-top:18px;background:var(--card);border:1px solid var(--line);border-radius:17px;
+    padding:14px 18px;font-size:13px;color:var(--muted);display:flex;justify-content:space-between;align-items:center}
+  .kyc-line b{color:var(--text);font-variant-numeric:tabular-nums}
+
+  /* ---------- history panel ---------- */
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:26px;padding:24px;box-shadow:var(--shadow)}
+  .panel h2{margin:0 0 16px;font-size:17px;display:flex;justify-content:space-between;align-items:center}
+  .filters{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+  .fchip{padding:7px 14px;border-radius:999px;font-size:12.5px;background:var(--card2);
+    border:1px solid var(--line);color:var(--muted);transition:.12s}
+  .fchip:hover{border-color:var(--line2);color:var(--text)}
+  .fchip.on{background:rgba(46,230,168,.13);border-color:rgba(46,230,168,.5);color:var(--accent);font-weight:650}
+  .hday{font-size:12px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--dim);
+    margin:16px 2px 4px}
+  .hitem{display:flex;align-items:center;gap:14px;padding:11px 6px;border-radius:14px;animation:fadeUp .25s ease}
+  .hitem:hover{background:rgba(255,255,255,.025)}
+  .hico{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;flex:none;background:var(--card2)}
+  .hico.in{color:var(--accent)} .hico.out{color:var(--red)} .hico.hold{color:var(--amber)} .hico.rev{color:var(--muted)}
+  .ht{flex:1;min-width:0}
+  .ht .t1{font-weight:600;font-size:14px;display:flex;align-items:center}
+  .ht .t2{color:var(--muted);font-size:12px;margin-top:1px}
+  .hamt{font-weight:700;font-size:14.5px;white-space:nowrap;font-variant-numeric:tabular-nums}
+  .amt-plus{color:var(--accent)} .amt-minus{color:var(--red)} .amt-hold{color:var(--amber)} .amt-rev{color:var(--muted)}
+  .hstat{font-size:10px;padding:2.5px 8px;border-radius:999px;margin-left:9px;font-weight:750;letter-spacing:.3px}
+  .st-pending{background:rgba(255,180,84,.14);color:var(--amber)}
+  .st-released{background:#1d2647;color:var(--muted)}
+  .more{margin-top:14px}
+  .empty{color:var(--muted);text-align:center;padding:46px 0;font-size:14px}
+  .empty .big{font-size:34px;margin-bottom:8px}
+
+  /* skeletons */
+  .skel{border-radius:10px;background:linear-gradient(90deg,#1a2344 25%,#222d56 45%,#1a2344 65%);
+    background-size:200% 100%;animation:shimmer 1.2s infinite}
+  @keyframes shimmer{from{background-position:200% 0}to{background-position:-200% 0}}
+
+  /* ---------- modal ---------- */
+  .overlay{position:fixed;inset:0;background:rgba(3,5,12,.74);backdrop-filter:blur(6px);
+    display:flex;align-items:center;justify-content:center;z-index:50;padding:20px;animation:fade .18s ease}
+  .modal{width:410px;max-width:100%;background:linear-gradient(180deg,#131c3a,#0f1730);
+    border:1px solid var(--line2);border-radius:24px;padding:26px;box-shadow:var(--shadow);
+    max-height:92vh;overflow:auto;animation:fadeUp .25s ease}
+  @media(max-width:560px){
+    .overlay{align-items:flex-end;padding:0}
+    .modal{border-radius:24px 24px 0 0;width:100%;animation:sheet .28s ease}
+  }
+  @keyframes fade{from{opacity:0}}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}}
+  @keyframes sheet{from{transform:translateY(60%)}}
+  .modal h3{margin:0 0 4px;font-size:18.5px}
+  .modal .sub{margin:0 0 18px}
+  .mrow{margin-bottom:13px}
+  .mrow label{display:block;font-size:12.5px;color:var(--muted);margin-bottom:7px}
+  .mbtns{display:flex;gap:10px;margin-top:20px}
+  .merr{color:var(--red);font-size:13px;min-height:18px;margin-top:10px}
+  .amount-chips{display:flex;gap:8px;margin-top:9px;flex-wrap:wrap}
+  .achip{padding:6px 12px;border-radius:999px;font-size:12.5px;background:var(--card2);
+    border:1px solid var(--line);color:var(--muted)}
+  .achip:hover{border-color:var(--accent);color:var(--accent)}
+  .big-in{font-size:24px;font-weight:700;text-align:right;font-variant-numeric:tabular-nums;padding:14px 16px}
+
+  /* OTP boxes */
+  .otp-boxes{display:flex;gap:9px;justify-content:center;margin:6px 0 2px}
+  .otp-b{width:50px;height:60px;text-align:center;font-size:26px;font-weight:750;padding:0;border-radius:14px}
+  .otp-bar-wrap{height:4px;background:var(--card2);border-radius:99px;margin-top:16px;overflow:hidden}
+  .otp-bar{height:100%;background:linear-gradient(90deg,var(--accent),var(--cyan));border-radius:99px;
+    transition:width 1s linear}
+  .otp-timer{font-size:12px;color:var(--muted);text-align:center;margin-top:8px}
+  .otp-timer b{color:var(--text)}
+  .otp-note{background:rgba(62,199,255,.08);border:1px solid rgba(62,199,255,.25);color:#9cc9ec;
+    border-radius:13px;padding:10px 13px;font-size:12.5px;margin-top:14px;display:flex;gap:9px;align-items:flex-start}
+  .shake{animation:shake .4s}
+  @keyframes shake{10%,90%{transform:translateX(-2px)}20%,80%{transform:translateX(4px)}
+    30%,50%,70%{transform:translateX(-6px)}40%,60%{transform:translateX(6px)}}
+
+  /* recipient */
+  .recip{display:flex;align-items:center;gap:13px;background:var(--card2);border:1px solid rgba(46,230,168,.4);
+    border-radius:16px;padding:13px 15px;margin-top:4px;animation:fadeUp .2s ease}
+  .recip .n{font-weight:650}
+  .recip .p{font-size:12px;color:var(--muted)}
+  .link{color:var(--cyan);font-size:12.5px;background:none;padding:4px 2px}
+  .link:hover{text-decoration:underline}
+  .qchips{display:flex;gap:8px;margin-top:8px}
+
+  /* qr / intent */
+  .qr-img{display:block;margin:10px auto;border-radius:16px;background:#fff;padding:11px;max-width:235px;width:100%}
+  .tok{font-size:10.5px;word-break:break-all;background:var(--card2);border:1px solid var(--line);
+    border-radius:11px;padding:9px;color:var(--muted);max-height:88px;overflow:auto;margin-top:8px}
+  details summary{cursor:pointer;color:var(--muted);font-size:12.5px;margin-top:10px}
+  .intent{background:var(--card2);border:1px solid var(--line2);border-radius:16px;padding:18px;margin:12px 0;text-align:center}
+  .intent .a{font-size:30px;font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums}
+  .intent .to{font-size:12.5px;color:var(--muted);margin-top:8px}
+  .verified{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--accent);
+    background:rgba(46,230,168,.1);padding:4px 11px;border-radius:999px;margin-top:10px}
+
+  /* success */
+  .success-wrap{text-align:center;padding:6px 0}
+  .ck{width:84px;height:84px;margin:8px auto 18px}
+  .ck circle{fill:none;stroke:var(--accent);stroke-width:2.5;stroke-dasharray:166;stroke-dashoffset:166;
+    animation:draw .5s ease forwards}
+  .ck path{fill:none;stroke:var(--accent);stroke-width:3;stroke-linecap:round;stroke-linejoin:round;
+    stroke-dasharray:48;stroke-dashoffset:48;animation:draw .35s .45s ease forwards}
+  @keyframes draw{to{stroke-dashoffset:0}}
+  .success-amt{font-size:30px;font-weight:800;margin:4px 0 2px;font-variant-numeric:tabular-nums}
+
+  /* toasts */
+  .toasts{position:fixed;right:22px;bottom:22px;display:flex;flex-direction:column;gap:10px;z-index:99}
+  .toast{display:flex;align-items:center;gap:10px;background:#0e3527;color:#c9f7e6;
+    border:1px solid rgba(46,230,168,.4);border-radius:15px;padding:13px 17px;
+    box-shadow:var(--shadow);font-size:14px;font-weight:550;animation:fadeUp .25s ease}
+  .toast.bad{background:#3c1220;border-color:rgba(255,93,120,.45);color:#ffd6dd}
+</style>
+</head>
+<body>
+
+<!-- ====================== LOGIN ====================== -->
+<div id="loginScreen" class="login-wrap">
+  <div class="login">
+    <div class="logo">
+      <div class="logo-badge"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="3"/><path d="M2 10h20"/><path d="M6 15h4"/></svg></div>
+      <h1>Hamyon</h1>
+    </div>
+    <p class="sub">Ledger-кошелёк · деньги как журнал событий</p>
+
+    <div class="demo-accounts">
+      <button class="acc" onclick="quick('alice')">
+        <div class="avatar av-0">A</div>
+        <div class="meta"><div class="n">alice</div><div class="d">KYC: FULL · лимит 50 млн сум</div></div>
+        <svg class="go" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+      </button>
+      <button class="acc" onclick="quick('bob')">
+        <div class="avatar av-1">B</div>
+        <div class="meta"><div class="n">bob</div><div class="d">KYC: BASIC · лимит 5 млн сум</div></div>
+        <svg class="go" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+      </button>
+    </div>
+
+    <div class="divider">или вручную</div>
+    <div class="field"><input id="liUser" placeholder="Логин" autocomplete="username"></div>
+    <div class="field"><input id="liPass" type="password" placeholder="Пароль" autocomplete="current-password"></div>
+    <button class="btn btn-primary" id="liGo" onclick="login()">Войти</button>
+    <div class="err" id="liErr"></div>
+    <a href="/about" style="display:block;text-align:center;margin-top:16px;color:var(--cyan);font-size:13.5px;text-decoration:none">Как это вообще работает? →</a>
+  </div>
+</div>
+
+<!-- ====================== APP ====================== -->
+<div id="appScreen" class="hidden">
+  <div class="top">
+    <div class="logo">
+      <div class="logo-badge"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="3"/><path d="M2 10h20"/><path d="M6 15h4"/></svg></div>
+      <h1>Hamyon</h1>
+    </div>
+    <div class="userbox">
+      <span class="chip" id="kycBadge"></span>
+      <div class="avatar av-0" id="uAvatar">?</div>
+      <span class="uname" id="uName"></span>
+      <button class="logout" onclick="logout()">выйти</button>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div>
+      <div class="balance-card">
+        <div class="lbl">Доступно</div>
+        <div class="avail"><span id="bAvail"><span class="skel" style="display:inline-block;width:180px;height:34px"></span></span> <small>сум</small></div>
+        <div class="subbal">
+          <span>Баланс <b id="bTotal">…</b></span>
+          <span id="heldWrap">Заморожено <b id="bHeld">…</b></span>
+        </div>
+        <div class="wallet-id">Кошелёк <code id="wId">…</code>
+          <button class="copy" onclick="copyWallet()">копировать</button>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="act" onclick="openPay('topup')">
+          <div class="ico"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 21h16"/></svg></div>
+          <span>Пополнить</span></button>
+        <button class="act" onclick="openPay('withdraw')">
+          <div class="ico"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21V9"/><path d="M7 14l5-5 5 5"/><path d="M4 3h16"/></svg></div>
+          <span>Вывести</span></button>
+        <button class="act" onclick="openTransfer()">
+          <div class="ico"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg></div>
+          <span>Перевести</span></button>
+        <button class="act" onclick="openMyQR()">
+          <div class="ico"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14h1M14 20h1M20 20h1"/></svg></div>
+          <span>Мой QR</span></button>
+        <button class="act" onclick="openInvoice()">
+          <div class="ico"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 2h14v20l-2.8-2-2.8 2-2.8-2-2.8 2V2z"/><path d="M9 8h6M9 12h6"/></svg></div>
+          <span>Счёт (QR)</span></button>
+        <button class="act" onclick="openScan()">
+          <div class="ico"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8V5a2 2 0 012-2h3M16 3h3a2 2 0 012 2v3M21 16v3a2 2 0 01-2 2h-3M8 21H5a2 2 0 01-2-2v-3"/><path d="M3 12h18"/></svg></div>
+          <span>Сканировать</span></button>
+      </div>
+
+      <div class="kyc-line">
+        <span>KYC-лимит на 30 дней</span><b id="kycLimit">…</b>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>История <button class="copy" onclick="reloadHistory()">обновить</button></h2>
+      <div class="filters" id="filters">
+        <button class="fchip on" data-f="">Все</button>
+        <button class="fchip" data-f="credit">Зачисления</button>
+        <button class="fchip" data-f="debit">Списания</button>
+        <button class="fchip" data-f="hold">Заморозки</button>
+        <button class="fchip" data-f="reversal">Разморозки</button>
+      </div>
+      <div id="hList">
+        <div class="hitem"><div class="skel" style="width:42px;height:42px"></div><div class="ht"><div class="skel" style="width:140px;height:14px;margin-bottom:6px"></div><div class="skel" style="width:80px;height:10px"></div></div><div class="skel" style="width:90px;height:16px"></div></div>
+        <div class="hitem"><div class="skel" style="width:42px;height:42px"></div><div class="ht"><div class="skel" style="width:160px;height:14px;margin-bottom:6px"></div><div class="skel" style="width:70px;height:10px"></div></div><div class="skel" style="width:80px;height:16px"></div></div>
+      </div>
+      <button class="btn btn-ghost more hidden" id="moreBtn" onclick="busy(this,loadMore)">Загрузить ещё</button>
+    </div>
+  </div>
+</div>
+
+<div id="modalHost"></div>
+<div class="toasts" id="toasts"></div>
+
+<script>
+/* ============ state & helpers ============ */
+const S = { token:null, user:null, wallet:null, cursor:null, filter:'', polls:[],
+            paginated:false, lastBalance:null, quietUntil:0 };
+const $ = id => document.getElementById(id);
+
+const fmt = t => (t/100).toLocaleString('ru-RU', {maximumFractionDigits:2});
+const digitsOf = v => String(v).replace(/\D/g,'');
+const uzs = v => Number(digitsOf(v)) * 100;   // UZS string -> tiyin
+const avCls = n => 'av-' + ([...n].reduce((a,c)=>a+c.charCodeAt(0),0) % 4);
+
+const ICONS = {
+  in : '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v8M8.5 11.5L12 15l3.5-3.5"/></svg>',
+  out: '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 17V9M8.5 12.5L12 9l3.5 3.5"/></svg>',
+  hold:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>',
+  rev: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 017.5-2"/></svg>',
+  tg : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex:none;margin-top:1px"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>',
+  ok : '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>',
+};
+
+const ERR = {
+  insufficient_funds:'Недостаточно средств',
+  kyc_limit_exceeded:'Превышен KYC-лимит за 30 дней',
+  kyc_rejected:'KYC отклонён — операции запрещены',
+  otp_invalid:'Неверный код',
+  otp_locked:'Слишком много попыток — вход в OTP заблокирован на 10 минут',
+  otp_missing_or_expired:'Код истёк, начните операцию заново',
+  qr_already_used:'Этот QR уже использован',
+  qr_invalid:'QR недействителен или истёк',
+  invalid_state_transition:'Заявка уже обработана',
+  kyc_already_pending:'Заявка KYC уже на рассмотрении',
+  recipient_not_found:'Получатель не найден',
+};
+
+async function api(path, opts={}){
+  const headers = {'Content-Type':'application/json', ...(opts.headers||{})};
+  if (S.token) headers['Authorization'] = 'Token ' + S.token;
+  const res = await fetch('/api' + path, {...opts, headers});
+  let data = null;
+  const text = await res.text();
+  if (text) { try { data = JSON.parse(text); } catch(e){} }
+  if (!res.ok){
+    const code = data && data.code;
+    const msg = code ? (ERR[code]||code)
+              : res.status===403 ? 'Операция недоступна'
+              : res.status===404 ? 'Не найдено'
+              : data && data.detail ? data.detail
+              : data ? Object.values(data).flat().join(' ') : ('Ошибка ' + res.status);
+    const err = new Error(msg); err.status = res.status; err.code = code; throw err;
+  }
+  return data;
+}
+
+function toast(msg, bad=false){
+  const el = document.createElement('div');
+  el.className = 'toast' + (bad?' bad':'');
+  el.innerHTML = `<span style="color:${bad?'var(--red)':'var(--accent)'}">${bad?'✕':ICONS.ok}</span> ${msg}`;
+  $('toasts').appendChild(el);
+  setTimeout(()=>el.remove(), 4500);
+}
+
+async function busy(btn, fn){
+  if (btn.disabled) return;
+  btn.disabled = true; btn.classList.add('busy');
+  try { await fn(); } finally { btn.disabled = false; btn.classList.remove('busy'); }
+}
+
+function animateNum(el, to){
+  const from = el._v ?? to;
+  el._v = to;
+  if (from === to){ el.textContent = fmt(to); return; }
+  const t0 = performance.now(), dur = 550;
+  (function tick(t){
+    const k = Math.min(1, (t - t0)/dur), e = 1-Math.pow(1-k,3);
+    el.textContent = fmt(Math.round(from + (to-from)*e));
+    if (k < 1) requestAnimationFrame(tick);
+  })(t0);
+}
+
+function moneyInput(el){
+  el.addEventListener('input', () => {
+    const d = digitsOf(el.value);
+    el.value = d ? Number(d).toLocaleString('ru-RU') : '';
+  });
+}
+
+/* ============ auth ============ */
+function quick(u){ $('liUser').value = u; $('liPass').value = 'demo123'; login(); }
+
+async function login(){
+  $('liErr').textContent = '';
+  try{
+    const body = new URLSearchParams({username:$('liUser').value, password:$('liPass').value});
+    const res = await fetch('/api/auth/token/', {method:'POST', body});
+    if (!res.ok) throw new Error('Неверный логин или пароль');
+    S.token = (await res.json()).token;
+    S.user = $('liUser').value;
+    localStorage.setItem('hamyon', JSON.stringify({token:S.token, user:S.user}));
+    await enter();
+  }catch(e){ $('liErr').textContent = e.message; }
+}
+
+function logout(){
+  localStorage.removeItem('hamyon');
+  S.polls.forEach(clearInterval);
+  location.reload();
+}
+
+async function enter(){
+  let wallets = await api('/wallet/');
+  if (!wallets.length) wallets = [await api('/wallet/', {method:'POST'})];
+  S.wallet = wallets[0];
+  $('uName').textContent = S.user;
+  const av = $('uAvatar');
+  av.textContent = S.user[0].toUpperCase();
+  av.className = 'avatar ' + avCls(S.user);
+  $('wId').textContent = S.wallet.id;
+  $('loginScreen').classList.add('hidden');
+  $('appScreen').classList.remove('hidden');
+  await Promise.all([loadBalance(), loadKyc(), reloadHistory()]);
+  S.polls.push(setInterval(loadBalance, 4000));
+  S.polls.push(setInterval(()=>{ if(!S.paginated) reloadHistory(); }, 8000));
+}
+
+/* ============ balance / kyc ============ */
+async function loadBalance(){
+  try{
+    const b = await api(`/wallet/${S.wallet.id}/balance/`);
+    animateNum($('bAvail'), b.available);
+    $('bTotal').textContent = fmt(b.balance);
+    $('bHeld').textContent  = fmt(b.held);
+    $('heldWrap').className = b.held > 0 ? 'warn' : '';
+    if (S.lastBalance !== null && b.balance > S.lastBalance && Date.now() > S.quietUntil){
+      toast('Поступление +' + fmt(b.balance - S.lastBalance) + ' сум');
+      reloadHistory();
+    }
+    S.lastBalance = b.balance;
+  }catch(e){}
+}
+
+async function loadKyc(){
+  try{
+    const k = await api('/kyc/status/');
+    const badge = $('kycBadge');
+    badge.textContent = 'KYC: ' + k.level.toUpperCase();
+    badge.className = 'chip kyc-' + k.level;
+    $('kycLimit').textContent = fmt(k.spending_limit_30d) + ' сум';
+  }catch(e){}
+}
+
+function copyWallet(){ navigator.clipboard.writeText(S.wallet.id); toast('ID кошелька скопирован'); }
+
+/* ============ history ============ */
+const HMETA = {
+  credit:  {ico:ICONS.in,  cls:'in',  name:'Зачисление', acls:'amt-plus',  sign:'+'},
+  debit:   {ico:ICONS.out, cls:'out', name:'Списание',   acls:'amt-minus', sign:'−'},
+  hold:    {ico:ICONS.hold,cls:'hold',name:'Заморозка',  acls:'amt-hold',  sign:''},
+  reversal:{ico:ICONS.rev, cls:'rev', name:'Разморозка', acls:'amt-rev',   sign:''},
+};
+
+document.querySelectorAll('#filters .fchip').forEach(ch => ch.onclick = () => {
+  document.querySelectorAll('#filters .fchip').forEach(c=>c.classList.remove('on'));
+  ch.classList.add('on');
+  S.filter = ch.dataset.f;
+  reloadHistory();
+});
+
+function dayLabel(d){
+  const now = new Date(), y = new Date(); y.setDate(now.getDate()-1);
+  const same = (a,b)=>a.toDateString()===b.toDateString();
+  if (same(d, now)) return 'Сегодня';
+  if (same(d, y)) return 'Вчера';
+  return d.toLocaleDateString('ru-RU', {day:'numeric', month:'long'});
+}
+
+async function reloadHistory(){
+  S.cursor = null; S.paginated = false; S.lastDay = null;
+  const data = await fetchHistory();
+  renderHistory(data.results, true);
+  S.cursor = data.next_cursor;
+  $('moreBtn').classList.toggle('hidden', !S.cursor);
+}
+
+async function loadMore(){
+  S.paginated = true;
+  const data = await fetchHistory(S.cursor);
+  renderHistory(data.results, false);
+  S.cursor = data.next_cursor;
+  $('moreBtn').classList.toggle('hidden', !S.cursor);
+}
+
+function fetchHistory(cursor){
+  let q = `/wallet/${S.wallet.id}/history/?page_size=9`;
+  if (S.filter) q += '&type=' + S.filter;
+  if (cursor) q += '&cursor=' + encodeURIComponent(cursor);
+  return api(q);
+}
+
+function renderHistory(items, replace){
+  const list = $('hList');
+  if (replace) list.innerHTML = '';
+  if (!items.length && replace){
+    list.innerHTML = '<div class="empty"><div class="big">🪙</div>Операций пока нет<br>Пополните кошелёк, чтобы начать</div>';
+    return;
+  }
+  for (const e of items){
+    const m = HMETA[e.type];
+    const d = new Date(e.created_at);
+    const label = dayLabel(d);
+    if (label !== S.lastDay){
+      list.insertAdjacentHTML('beforeend', `<div class="hday">${label}</div>`);
+      S.lastDay = label;
+    }
+    const stat = e.type==='hold'
+      ? `<span class="hstat ${e.status==='pending'?'st-pending':'st-released'}">${e.status==='pending'?'активна':'снята'}</span>` : '';
+    list.insertAdjacentHTML('beforeend', `
+      <div class="hitem">
+        <div class="hico ${m.cls}">${m.ico}</div>
+        <div class="ht">
+          <div class="t1">${m.name}${stat}</div>
+          <div class="t2">${d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})}</div>
+        </div>
+        <div class="hamt ${m.acls}">${m.sign}${fmt(e.amount)} сум</div>
+      </div>`);
+  }
+}
+
+/* ============ modals ============ */
+function modal(html){
+  $('modalHost').innerHTML =
+    `<div class="overlay" onclick="if(event.target===this)closeModal()"><div class="modal">${html}</div></div>`;
+}
+function closeModal(){ $('modalHost').innerHTML = ''; }
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+function successModal(title, amount){
+  S.quietUntil = Date.now() + 6000;
+  modal(`<div class="success-wrap">
+    <svg class="ck" viewBox="0 0 56 56"><circle cx="28" cy="28" r="26.5"/><path d="M17 29l8 8 15-16"/></svg>
+    <h3>${title}</h3>
+    <div class="success-amt">${amount}</div>
+    <p class="sub" style="margin-top:4px">Запись добавлена в журнал операций</p>
+    <button class="btn btn-primary" onclick="closeModal()" style="margin-top:14px">Готово</button>
+  </div>`);
+  loadBalance(); reloadHistory();
+}
+
+function amountField(id, placeholder){
+  return `<div class="mrow"><label>Сумма, сум</label>
+    <input id="${id}" class="big-in" inputmode="numeric" placeholder="${placeholder}">
+    <div class="amount-chips">
+      ${[10000,50000,100000,500000].map(v =>
+        `<button class="achip" onclick="$('${id}').value=(${v}).toLocaleString('ru-RU')">${v.toLocaleString('ru-RU')}</button>`).join('')}
+    </div></div>`;
+}
+
+/* ---- OTP step ---- */
+function otpModal(title, sub, onSubmit){
+  modal(`
+    <h3>${title}</h3><p class="sub">${sub}</p>
+    <div class="otp-boxes" id="otpBoxes">
+      ${Array.from({length:6},(_,i)=>`<input class="otp-b" id="otp${i}" maxlength="1" inputmode="numeric">`).join('')}
+    </div>
+    <div class="otp-bar-wrap"><div class="otp-bar" id="otpBar" style="width:100%"></div></div>
+    <div class="otp-timer" id="otpTimer">Код действует <b>1:30</b></div>
+    <div class="otp-note">${ICONS.tg} Demo-режим: код «пришёл в Telegram» — смотрите консоль сервера (make run).</div>
+    <div class="merr" id="mErr"></div>
+    <div class="mbtns">
+      <button class="btn btn-ghost" onclick="closeModal()">Отмена</button>
+      <button class="btn btn-primary" id="otpGo">Подтвердить</button>
+    </div>`);
+
+  const boxes = Array.from({length:6},(_,i)=>$('otp'+i));
+  const val = () => boxes.map(b=>b.value).join('');
+  boxes.forEach((b,i)=>{
+    b.addEventListener('input', ()=>{
+      b.value = b.value.replace(/\D/g,'').slice(-1);
+      if (b.value && i<5) boxes[i+1].focus();
+      if (val().length===6) $('otpGo').focus();
+    });
+    b.addEventListener('keydown', e=>{
+      if (e.key==='Backspace' && !b.value && i>0) boxes[i-1].focus();
+      if (e.key==='Enter') $('otpGo').click();
+    });
+  });
+  boxes[0].addEventListener('paste', e=>{
+    e.preventDefault();
+    const d = (e.clipboardData.getData('text')||'').replace(/\D/g,'').slice(0,6);
+    boxes.forEach((b,i)=>b.value = d[i]||'');
+    (boxes[d.length-1]||boxes[0]).focus();
+  });
+  boxes[0].focus();
+
+  // Demo deployment: auto-fill the code from the server (no real Telegram bot).
+  api('/demo/last-otp/').then(r => {
+    if (r && r.code && $('otpBoxes')) {
+      [...String(r.code)].forEach((dch, i) => { if (boxes[i]) boxes[i].value = dch; });
+      const note = document.querySelector('.otp-note');
+      if (note) note.innerHTML =
+        ICONS.tg + ' Demo: kod avtomatik kiritildi (haqiqiy ilovada Telegram orqali keladi).';
+    }
+  }).catch(() => {});
+
+  let left = 90;
+  const iv = setInterval(()=>{
+    left--;
+    if (!$('otpBar')) { clearInterval(iv); return; }
+    $('otpBar').style.width = Math.max(0, left/90*100) + '%';
+    $('otpTimer').innerHTML = left>0
+      ? `Код действует <b>${Math.floor(left/60)}:${String(left%60).padStart(2,'0')}</b>`
+      : '<span style="color:var(--red)">Код истёк — закройте окно и начните заново</span>';
+    if (left<=0){ clearInterval(iv); $('otpGo').disabled = true; }
+  }, 1000);
+
+  $('otpGo').onclick = () => busy($('otpGo'), async ()=>{
+    $('mErr').textContent = '';
+    try{ await onSubmit(val()); clearInterval(iv); }
+    catch(e){
+      $('mErr').textContent = e.message;
+      if (e.code==='otp_invalid'){
+        $('otpBoxes').classList.add('shake');
+        setTimeout(()=>$('otpBoxes') && $('otpBoxes').classList.remove('shake'), 450);
+        boxes.forEach(b=>b.value=''); boxes[0].focus();
+      }
+    }
+  });
+}
+
+/* ---- top-up / withdraw ---- */
+function openPay(direction){
+  const isUp = direction==='topup';
+  modal(`
+    <h3>${isUp?'Пополнение':'Вывод средств'}</h3>
+    <p class="sub">${isUp?'С карты на кошелёк':'Сумма будет заморожена до подтверждения кодом'}</p>
+    ${amountField('payAmt', isUp?'50 000':'20 000')}
+    <div class="merr" id="mErr"></div>
+    <div class="mbtns">
+      <button class="btn btn-ghost" onclick="closeModal()">Отмена</button>
+      <button class="btn btn-primary" id="payGo">Продолжить</button>
+    </div>`);
+  moneyInput($('payAmt')); $('payAmt').focus();
+  $('payGo').onclick = () => busy($('payGo'), async ()=>{
+    $('mErr').textContent = '';
+    const amt = uzs($('payAmt').value);
+    if (!amt){ $('mErr').textContent='Введите сумму'; return; }
+    try{
+      const pr = await api('/payments/initiate/', {method:'POST', body:JSON.stringify({
+        wallet_id:S.wallet.id, direction, amount:amt, idempotency_key:crypto.randomUUID()})});
+      loadBalance();
+      otpModal('Код подтверждения', `${isUp?'Пополнение':'Вывод'} · ${fmt(amt)} сум`, async code => {
+        await api(`/payments/${pr.id}/confirm/`, {method:'POST', body:JSON.stringify({code})});
+        successModal(isUp?'Кошелёк пополнен':'Средства выведены',
+                     (isUp?'+':'−') + fmt(amt) + ' сум');
+      });
+    }catch(e){ $('mErr').textContent = e.message; }
+  });
+}
+
+/* ---- p2p transfer ---- */
+function openTransfer(){
+  modal(`
+    <h3>Перевод</h3><p class="sub">По логину или номеру телефона</p>
+    <div class="mrow"><label>Кому</label>
+      <div style="display:flex;gap:9px">
+        <input id="trQuery" placeholder="bob или +99890…">
+        <button class="btn btn-ghost" style="width:auto;padding:0 18px" id="trFind">Найти</button>
+      </div>
+      <div class="qchips">
+        <button class="achip" onclick="$('trQuery').value='alice';$('trFind').click()">alice</button>
+        <button class="achip" onclick="$('trQuery').value='bob';$('trFind').click()">bob</button>
+        <button class="link" id="trManualLink">ввести ID кошелька</button>
+      </div>
+      <div id="recipBox"></div>
+    </div>
+    <div id="trRest" class="hidden">
+      ${amountField('trAmt', '10 000')}
+      <div class="merr" id="mErr"></div>
+      <div class="mbtns">
+        <button class="btn btn-ghost" onclick="closeModal()">Отмена</button>
+        <button class="btn btn-primary" id="trGo">Продолжить</button>
+      </div>
+    </div>
+    <div class="merr hidden" id="mErrTop"></div>`);
+
+  let recipient = null;
+  moneyInput($('trAmt'));
+
+  const find = () => busy($('trFind'), async ()=>{
+    $('mErrTop').classList.remove('hidden'); $('mErrTop').textContent = '';
+    $('recipBox').innerHTML = '';
+    try{
+      const r = await api('/p2p/resolve/', {method:'POST',
+        body:JSON.stringify({query: $('trQuery').value.trim()})});
+      if (r.wallet_id === S.wallet.id){
+        $('mErrTop').textContent = 'Нельзя перевести самому себе'; return;
+      }
+      recipient = r;
+      $('recipBox').innerHTML = `
+        <div class="recip">
+          <div class="avatar ${avCls(r.username)}">${r.username[0].toUpperCase()}</div>
+          <div><div class="n">${r.username}</div><div class="p">${r.phone_masked}</div></div>
+        </div>`;
+      $('trRest').classList.remove('hidden');
+      $('trAmt').focus();
+    }catch(e){ $('mErrTop').textContent = e.message; }
+  });
+  $('trFind').onclick = find;
+  $('trQuery').addEventListener('keydown', e=>{ if(e.key==='Enter') find(); });
+
+  $('trManualLink').onclick = () => {
+    $('recipBox').innerHTML = `<div class="mrow" style="margin-top:10px">
+      <label>ID кошелька получателя</label><input id="trUuid" placeholder="xxxxxxxx-xxxx-…"></div>`;
+    recipient = 'manual';
+    $('trRest').classList.remove('hidden');
+  };
+
+  $('trGo').onclick = () => busy($('trGo'), async ()=>{
+    $('mErr').textContent = '';
+    const to = recipient === 'manual' ? ($('trUuid')?.value||'').trim() : recipient?.wallet_id;
+    const amt = uzs($('trAmt').value);
+    if (!to){ $('mErr').textContent='Сначала выберите получателя'; return; }
+    if (!amt){ $('mErr').textContent='Введите сумму'; return; }
+    const who = recipient === 'manual' ? 'по ID кошелька' : recipient.username;
+    try{
+      const tr = await api('/p2p/transfer/', {method:'POST', body:JSON.stringify({
+        sender_wallet:S.wallet.id, recipient_wallet:to, amount:amt,
+        idempotency_key:crypto.randomUUID()})});
+      otpModal('Код подтверждения', `Перевод ${who} · ${fmt(amt)} сум`, async code => {
+        await api(`/p2p/transfers/${tr.id}/confirm/`, {method:'POST', body:JSON.stringify({code})});
+        successModal('Перевод выполнен', '−' + fmt(amt) + ' сум');
+      });
+    }catch(e){ $('mErr').textContent = e.message; }
+  });
+}
+
+/* ---- static QR ---- */
+async function openMyQR(){
+  modal(`<h3>Мой QR</h3><p class="sub">Постоянный — покажите его, чтобы вам перевели</p>
+    <img class="qr-img" id="sqr" alt="QR">
+    <div class="tok">${S.wallet.id}</div>
+    <div class="mbtns">
+      <button class="btn btn-ghost" onclick="copyWallet()">Копировать ID</button>
+      <button class="btn btn-primary" onclick="closeModal()">Закрыть</button>
+    </div>`);
+  const res = await fetch(`/api/wallet/${S.wallet.id}/qr/static/`,
+                          {headers:{Authorization:'Token '+S.token}});
+  $('sqr').src = URL.createObjectURL(await res.blob());
+}
+
+/* ---- dynamic QR (invoice) ---- */
+function openInvoice(){
+  modal(`
+    <h3>Выставить счёт</h3><p class="sub">Одноразовый QR с фиксированной суммой</p>
+    ${amountField('invAmt', '7 000')}
+    <div class="merr" id="mErr"></div>
+    <div class="mbtns">
+      <button class="btn btn-ghost" onclick="closeModal()">Отмена</button>
+      <button class="btn btn-primary" id="invGo">Создать QR</button>
+    </div>`);
+  moneyInput($('invAmt')); $('invAmt').focus();
+  $('invGo').onclick = () => busy($('invGo'), async ()=>{
+    $('mErr').textContent = '';
+    const amt = uzs($('invAmt').value);
+    if (!amt){ $('mErr').textContent='Введите сумму'; return; }
+    try{
+      const d = await api('/p2p/qr/dynamic/', {method:'POST',
+        body:JSON.stringify({wallet_id:S.wallet.id, amount:amt})});
+      modal(`
+        <h3>Счёт на ${fmt(amt)} сум</h3>
+        <p class="sub">Одноразовый · подписан сервером · истекает через <span id="invLeft">15:00</span></p>
+        <img class="qr-img" src="data:image/png;base64,${d.qr_png_base64}">
+        <details><summary>Токен для демо «сканирования»</summary>
+          <div class="tok" id="invTok">${d.token}</div></details>
+        <div class="mbtns">
+          <button class="btn btn-ghost" onclick="navigator.clipboard.writeText($('invTok').textContent.trim());toast('Токен скопирован')">Копировать токен</button>
+          <button class="btn btn-primary" onclick="closeModal()">Готово</button>
+        </div>`);
+      let left = 15*60;
+      const iv = setInterval(()=>{
+        left--;
+        const el = $('invLeft');
+        if (!el){ clearInterval(iv); return; }
+        el.textContent = `${Math.floor(left/60)}:${String(left%60).padStart(2,'0')}`;
+        if (left<=0) clearInterval(iv);
+      }, 1000);
+    }catch(e){ $('mErr').textContent = e.message; }
+  });
+}
+
+/* ---- scan & pay ---- */
+function openScan(){
+  modal(`
+    <h3>Сканировать QR</h3><p class="sub">В демо вместо камеры — вставьте токен счёта</p>
+    <div class="mrow"><textarea id="scTok" rows="4" placeholder="eyJhbGciOi…"></textarea></div>
+    <button class="link" id="scPaste">Вставить из буфера обмена</button>
+    <div class="merr" id="mErr"></div>
+    <div class="mbtns">
+      <button class="btn btn-ghost" onclick="closeModal()">Отмена</button>
+      <button class="btn btn-primary" id="scGo">Проверить</button>
+    </div>`);
+  $('scPaste').onclick = async ()=>{
+    try{ $('scTok').value = await navigator.clipboard.readText(); }catch(e){}
+  };
+  $('scGo').onclick = () => busy($('scGo'), async ()=>{
+    $('mErr').textContent = '';
+    try{
+      const token = $('scTok').value.trim();
+      const r = await api('/p2p/scan/', {method:'POST', body:JSON.stringify({token})});
+      const it = r.transfer_intent;
+      modal(`
+        <h3>Подтвердите оплату</h3>
+        <div class="intent">
+          <div class="a">${fmt(it.amount)} сум</div>
+          <div class="to">Получатель <code>${it.recipient_wallet.slice(0,8)}…</code></div>
+          <div class="verified">${ICONS.ok} Подпись сервера проверена</div>
+        </div>
+        <div class="merr" id="mErr"></div>
+        <div class="mbtns">
+          <button class="btn btn-ghost" onclick="closeModal()">Отмена</button>
+          <button class="btn btn-primary" id="payInv">Оплатить</button>
+        </div>`);
+      $('payInv').onclick = () => busy($('payInv'), async ()=>{
+        try{
+          const tr = await api('/p2p/transfer/', {method:'POST', body:JSON.stringify({
+            sender_wallet:S.wallet.id, qr_token:token})});
+          otpModal('Код подтверждения', `Оплата счёта · ${fmt(it.amount)} сум`, async code => {
+            await api(`/p2p/transfers/${tr.id}/confirm/`, {method:'POST', body:JSON.stringify({code})});
+            successModal('Счёт оплачен', '−' + fmt(it.amount) + ' сум');
+          });
+        }catch(e){ $('mErr').textContent = e.message; }
+      });
+    }catch(e){ $('mErr').textContent = e.message; }
+  });
+}
+
+/* ============ boot ============ */
+(async () => {
+  const saved = localStorage.getItem('hamyon');
+  if (saved){
+    const {token, user} = JSON.parse(saved);
+    S.token = token; S.user = user;
+    try{ await enter(); }catch(e){ localStorage.removeItem('hamyon'); }
+  }
+})();
+</script>
+</body>
+</html>
