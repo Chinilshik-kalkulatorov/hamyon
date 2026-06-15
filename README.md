@@ -112,6 +112,16 @@ make deploy                          # web + db + redis + worker + beat + nginx
 
 Domenni ulash: A-yozuvni server IP’siga yo‘naltiring, `.env.prod` da `DJANGO_ALLOWED_HOSTS` va `CSRF_TRUSTED_ORIGINS` ga domeningizni qo‘shing. HTTPS uchun nginx oldiga `certbot` qo‘shiladi (keyingi qadam). Loglar: `make deploy-logs`, to‘xtatish: `make deploy-down`.
 
+**Faqat ko‘rib chiqish uchun (lokal, faqat Docker kerak — Python/Postgres/Redis o‘rnatish shart emas):**
+
+```bash
+git clone https://github.com/Chinilshik-kalkulatorov/hamyon && cd hamyon
+cp .env.prod.example .env.prod        # lokal uchun tayyor, o‘zgartirish shart emas
+make deploy                            # butun stack ko‘tariladi
+```
+
+Tayyor bo‘lgach: `http://localhost` (API + `/admin/`, admin / admin123). To‘xtatish: `make deploy-down`.
+
 ---
 
 ## Testlar

@@ -112,6 +112,16 @@ The `web` container runs `migrate` and `collectstatic` itself; if `SEED_DEMO=1` 
 
 Point your domain's A record at the server IP and add it to `DJANGO_ALLOWED_HOSTS` and `CSRF_TRUSTED_ORIGINS` in `.env.prod`. For HTTPS, put `certbot` in front of nginx (next step). Logs: `make deploy-logs`, stop: `make deploy-down`.
 
+**Just to review it (local, only Docker needed — no Python/Postgres/Redis install):**
+
+```bash
+git clone https://github.com/Chinilshik-kalkulatorov/hamyon && cd hamyon
+cp .env.prod.example .env.prod        # ready for local, no edits needed
+make deploy                            # brings up the whole stack
+```
+
+Then open `http://localhost` (API + `/admin/`, admin / admin123). Stop: `make deploy-down`.
+
 ---
 
 ## Tests
