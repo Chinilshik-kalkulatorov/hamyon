@@ -78,6 +78,19 @@ services:
       - web
     restart: unless-stopped
 
+  # Cloudflare Tunnel: исходящее соединение к edge Cloudflare даёт публичный HTTPS
+  # без открытия портов 80/443 наружу. Публичный hostname туннеля в дашборде
+  # Cloudflare указывает на сервис http://nginx:80 (тот же compose-network).
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    command: tunnel --no-autoupdate run --token ${CF_TUNNEL_TOKEN}
+    # Быстрый временный туннель без аккаунта/домена (адрес *.trycloudflare.com
+    # меняется при каждом перезапуске — только для теста):
+    #   command: tunnel --no-autoupdate --url http://nginx:80
+    depends_on:
+      - nginx
+    restart: unless-stopped
+
 volumes:
   pgdata:
   static_volume:
