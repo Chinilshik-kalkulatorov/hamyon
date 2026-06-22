@@ -7,18 +7,22 @@
 для ПРИЁМА команд. Это не конфликтует: poll (бот) и sendMessage (кошелёк) независимы.
 
 Команды:
-  /start, /help        — приветствие и список команд
-  /login <user> <pass> — войти (получить API-токен и привязать чат)
-  /logout              — выйти
-  /balance             — баланс кошелька
-  /history             — последние операции
-  /whoami              — статус входа и chat_id
+  /start, /help            — приветствие и список команд
+  /login <user> <pass>     — войти (получить API-токен и привязать чат)
+  /logout                  — выйти
+  /balance                 — баланс кошелька
+  /history                 — последние операции
+  /send <кому> <сумма>     — перевод (по нику или телефону), сумма в UZS
+  /confirm <код>           — подтвердить перевод OTP-кодом
+  /cancel                  — отменить черновик перевода
+  /whoami                  — статус входа и chat_id
 """
 
 import json
 import logging
 import os
 import time
+import uuid
 
 import requests
 
@@ -33,8 +37,20 @@ API_BASE = os.environ.get("API_BASE", "http://web:8000").rstrip("/")
 TG = f"https://api.telegram.org/bot{TOKEN}"
 SESSIONS_PATH = os.environ.get("BOT_SESSIONS_PATH", "/data/sessions.json")
 
-# chat_id (str) -> {"token": str, "username": str}
+# chat_id (str) -> {"token": str, "username": str, "pending": {...}|absent}
 sessions: dict[str, dict] = {}
+
+# Доменные коды ошибок API -> понятный текст (см. apps/core/api.py).
+ERROR_MSG = {
+    "insufficient_funds": "Недостаточно средств.",
+    "recipient_not_found": "Получатель не найден.",
+    "otp_invalid": "Неверный код. Попробуй ещё раз: /confirm <код>",
+    "otp_missing_or_expired": "Код истёк. Начни перевод заново: /send <кому> <сумма>",
+    "otp_locked": "Слишком много попыток. Подожди 10 минут.",
+    "kyc_limit_exceeded": "Превышен лимит по твоему уровню KYC.",
+    "kyc_rejected": "KYC отклонён.",
+    "invalid_state_transition": "Перевод уже завершён или недоступен.",
+}
 
 
 def load_sessions() -> None:
@@ -72,8 +88,45 @@ def api_get(token: str, path: str):
     )
 
 
+def api_post(token: str, path: str, body: dict):
+    return requests.post(
+        f"{API_BASE}{path}",
+        headers={"Authorization": f"Token {token}"},
+        json=body,
+        timeout=10,
+    )
+
+
+def err_text(resp) -> str:
+    """Достаёт понятное сообщение из ответа API с доменной ошибкой."""
+    if resp.status_code == 403 and not resp.text.strip():
+        return "Операция заблокирована."
+    try:
+        code = resp.json().get("code")
+    except ValueError:
+        code = None
+    return ERROR_MSG.get(code, f"Ошибка ({resp.status_code}).")
+
+
 def fmt_uzs(tiyin: int) -> str:
     return f"{tiyin // 100:,}".replace(",", " ") + " UZS"
+
+
+def first_wallet_id(token: str):
+    r = api_get(token, "/api/wallet/")
+    if r.status_code == 200 and r.json():
+        return r.json()[0]["id"]
+    return None
+
+
+def parse_amount_to_tiyin(raw: str):
+    """'500' / '500.50' / '500,50' UZS -> тиыны (int). None если некорректно."""
+    try:
+        uzs = float(raw.replace(",", "."))
+    except ValueError:
+        return None
+    tiyin = int(round(uzs * 100))
+    return tiyin if tiyin >= 1 else None
 
 
 # --------------------------------------------------------------- команды ---
@@ -84,9 +137,12 @@ WELCOME = (
     "• /login <i>логин пароль</i> — войти\n"
     "• /balance — баланс\n"
     "• /history — последние операции\n"
-    "• /whoami — статус\n"
-    "• /logout — выйти\n\n"
-    "Демо-вход: <code>/login alice demo123</code>"
+    "• /send <i>кому сумма</i> — перевод (ник или телефон, сумма в UZS)\n"
+    "• /confirm <i>код</i> — подтвердить перевод\n"
+    "• /cancel — отменить черновик перевода\n"
+    "• /whoami — статус · /logout — выйти\n\n"
+    "Демо-вход: <code>/login alice demo123</code>\n"
+    "Пример перевода: <code>/send bob 500</code>"
 )
 
 
@@ -137,11 +193,10 @@ def cmd_balance(chat_id, _args):
     if not sess:
         return
     token = sess["token"]
-    wr = api_get(token, "/api/wallet/")
-    if wr.status_code != 200 or not wr.json():
+    wid = first_wallet_id(token)
+    if not wid:
         send(chat_id, "Кошелёк не найден.")
         return
-    wid = wr.json()[0]["id"]
     br = api_get(token, f"/api/wallet/{wid}/balance/")
     if br.status_code != 200:
         send(chat_id, "Не удалось получить баланс.")
@@ -160,11 +215,10 @@ def cmd_history(chat_id, _args):
     if not sess:
         return
     token = sess["token"]
-    wr = api_get(token, "/api/wallet/")
-    if wr.status_code != 200 or not wr.json():
+    wid = first_wallet_id(token)
+    if not wid:
         send(chat_id, "Кошелёк не найден.")
         return
-    wid = wr.json()[0]["id"]
     hr = api_get(token, f"/api/wallet/{wid}/history/?page_size=10")
     if hr.status_code != 200:
         send(chat_id, "Не удалось получить историю.")
@@ -180,10 +234,129 @@ def cmd_history(chat_id, _args):
     send(chat_id, "\n".join(lines))
 
 
+def cmd_send(chat_id, args):
+    sess = _require_login(chat_id)
+    if not sess:
+        return
+    if len(args) != 2:
+        send(chat_id, "Формат: <code>/send кому сумма</code>\nНапример: <code>/send bob 500</code>")
+        return
+    recipient, amount_raw = args
+    amount_tiyin = parse_amount_to_tiyin(amount_raw)
+    if amount_tiyin is None:
+        send(chat_id, "Сумма должна быть положительным числом (в UZS). Пример: <code>/send bob 500</code>")
+        return
+
+    token = sess["token"]
+    wid = first_wallet_id(token)
+    if not wid:
+        send(chat_id, "Твой кошелёк не найден.")
+        return
+
+    # 1) находим получателя по нику или телефону
+    rr = api_post(token, "/api/p2p/resolve/", {"query": recipient})
+    if rr.status_code == 404:
+        send(chat_id, "Получатель не найден. Проверь ник или телефон.")
+        return
+    if rr.status_code != 200:
+        send(chat_id, err_text(rr))
+        return
+    rec = rr.json()
+
+    # 2) инициируем перевод -> уходит OTP, статус otp_pending
+    ir = api_post(token, "/api/p2p/transfer/", {
+        "sender_wallet": wid,
+        "recipient_wallet": rec["wallet_id"],
+        "amount": amount_tiyin,
+        "idempotency_key": str(uuid.uuid4()),
+    })
+    if ir.status_code not in (200, 201):
+        send(chat_id, err_text(ir))
+        return
+    transfer_id = ir.json()["id"]
+
+    sess["pending"] = {
+        "transfer_id": transfer_id,
+        "recipient": rec["username"],
+        "amount_tiyin": amount_tiyin,
+    }
+    save_sessions()
+
+    msg = (
+        f"🔐 Перевод <b>{fmt_uzs(amount_tiyin)}</b> → <b>{rec['username']}</b> создан.\n"
+        f"Подтверди кодом: <code>/confirm код</code>\n"
+        f"Отменить: /cancel"
+    )
+    # В демо-режиме подскажем код (в проде эндпоинт отдаёт null — подсказки не будет,
+    # пользователь возьмёт код из своего Telegram).
+    try:
+        d = api_get(token, "/api/demo/last-otp/")
+        if d.status_code == 200 and d.json().get("code"):
+            msg += f"\n\n<i>демо-код: {d.json()['code']}</i>"
+    except requests.RequestException:
+        pass
+    send(chat_id, msg)
+
+
+def cmd_confirm(chat_id, args):
+    sess = _require_login(chat_id)
+    if not sess:
+        return
+    pending = sess.get("pending")
+    if not pending:
+        send(chat_id, "Нет активного перевода. Сначала /send <кому> <сумма>.")
+        return
+    if len(args) != 1:
+        send(chat_id, "Формат: <code>/confirm код</code> (6 цифр).")
+        return
+    code = args[0]
+
+    cr = api_post(token := sess["token"], f"/api/p2p/transfers/{pending['transfer_id']}/confirm/",
+                  {"code": code})
+    if cr.status_code == 200:
+        amount = pending["amount_tiyin"]
+        recipient = pending["recipient"]
+        sess.pop("pending", None)
+        save_sessions()
+        text = f"✅ Перевод <b>{fmt_uzs(amount)}</b> → <b>{recipient}</b> выполнен."
+        wid = first_wallet_id(token)
+        if wid:
+            br = api_get(token, f"/api/wallet/{wid}/balance/")
+            if br.status_code == 200:
+                text += f"\n💰 Остаток: {fmt_uzs(br.json()['balance'])}"
+        send(chat_id, text)
+        return
+
+    # ошибка: при истечении/локе черновик уже бесполезен — убираем
+    try:
+        ecode = cr.json().get("code")
+    except ValueError:
+        ecode = None
+    if ecode in ("otp_missing_or_expired", "otp_locked", "invalid_state_transition"):
+        sess.pop("pending", None)
+        save_sessions()
+    send(chat_id, err_text(cr))
+
+
+def cmd_cancel(chat_id, _args):
+    sess = _require_login(chat_id)
+    if not sess:
+        return
+    if sess.pop("pending", None):
+        save_sessions()
+        send(chat_id, "Черновик перевода отменён. (Запрос сам истечёт на сервере.)")
+    else:
+        send(chat_id, "Нет активного перевода.")
+
+
 def cmd_whoami(chat_id, _args):
     sess = sessions.get(str(chat_id))
     state = f"вошёл как <b>{sess['username']}</b>" if sess else "не в системе"
-    send(chat_id, f"chat_id: <code>{chat_id}</code>\nСтатус: {state}")
+    extra = ""
+    if sess and sess.get("pending"):
+        p = sess["pending"]
+        extra = f"\nЧерновик: {fmt_uzs(p['amount_tiyin'])} → {p['recipient']} (ждёт /confirm)"
+    send(chat_id, f"chat_id: <code>{chat_id}</code>\nСтатус: {state}{extra}")
 
 
 COMMANDS = {
@@ -193,6 +366,9 @@ COMMANDS = {
     "/logout": cmd_logout,
     "/balance": cmd_balance,
     "/history": cmd_history,
+    "/send": cmd_send,
+    "/confirm": cmd_confirm,
+    "/cancel": cmd_cancel,
     "/whoami": cmd_whoami,
 }
 
