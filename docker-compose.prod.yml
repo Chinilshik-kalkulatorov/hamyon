@@ -91,7 +91,24 @@ services:
       - nginx
     restart: unless-stopped
 
+  # Интерактивный Telegram-бот к кошельку. Long-polling = только исходящие
+  # соединения (портов наружу не нужно). Ходит в API по внутренней сети
+  # (http://web:8000), поэтому не зависит от меняющегося адреса туннеля.
+  # Использует тот же TELEGRAM_OTP_BOT_TOKEN (приём команд vs отправка OTP
+  # кошельком не конфликтуют).
+  bot:
+    build: ./bot
+    env_file: .env.prod
+    environment:
+      API_BASE: http://web:8000
+    volumes:
+      - bot_data:/data
+    depends_on:
+      - web
+    restart: unless-stopped
+
 volumes:
   pgdata:
   static_volume:
   media_volume:
+  bot_data:
