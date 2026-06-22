@@ -1,0 +1,7 @@
+# Внешний TLS-фронт. Домен подставляется из переменной окружения SITE_ADDRESS
+# (задаётся в .env.prod, напр. hamyon.duckdns.org). Caddy сам получает и продлевает
+# сертификат Let's Encrypt и проксирует всё на внутренний nginx.
+{$SITE_ADDRESS} {
+	encode gzip
+	reverse_proxy nginx:80
+}
