@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Hamyon — кошелёк</title>
+<title>Hamyon</title>
 <style>
   :root{
     --bg:#070b18; --card:#10182f; --card2:#0b1226; --line:#222d52; --line2:#2c3a6b;
@@ -45,11 +45,18 @@
   .btn-ghost.busy::after{border-color:rgba(255,255,255,.2);border-top-color:var(--accent)}
   @keyframes spin{to{transform:rotate(360deg)}}
 
+  /* ---------- language switch ---------- */
+  .lang{display:flex;gap:2px;background:var(--card2);border:1px solid var(--line);
+    border-radius:999px;padding:3px;flex:none}
+  .lang button{padding:4px 11px;border-radius:999px;font-size:12px;font-weight:700;color:var(--muted)}
+  .lang button.on{background:var(--accent);color:#03281b}
+
   /* ---------- login ---------- */
   .login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
   .login{width:420px;background:linear-gradient(180deg,#121b38,#0e1530);
     border:1px solid var(--line);border-radius:28px;padding:36px;box-shadow:var(--shadow);
     animation:fadeUp .4s ease}
+  .login-head{display:flex;align-items:center;justify-content:space-between}
   .logo{display:flex;align-items:center;gap:13px}
   .logo-badge{width:46px;height:46px;border-radius:15px;display:grid;place-items:center;
     background:linear-gradient(135deg,var(--accent),var(--cyan));color:#052b1e;flex:none}
@@ -237,31 +244,37 @@
 <!-- ====================== LOGIN ====================== -->
 <div id="loginScreen" class="login-wrap">
   <div class="login">
-    <div class="logo">
-      <div class="logo-badge"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="3"/><path d="M2 10h20"/><path d="M6 15h4"/></svg></div>
-      <h1>Hamyon</h1>
+    <div class="login-head">
+      <div class="logo">
+        <div class="logo-badge"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="3"/><path d="M2 10h20"/><path d="M6 15h4"/></svg></div>
+        <h1>Hamyon</h1>
+      </div>
+      <div class="lang">
+        <button data-l="ru" onclick="setLang('ru')">RU</button>
+        <button data-l="uz" onclick="setLang('uz')">UZ</button>
+      </div>
     </div>
-    <p class="sub">Ledger-кошелёк · деньги как журнал событий</p>
+    <p class="sub" data-i18n="brand_sub">Ledger-кошелёк · деньги как журнал событий</p>
 
     <div class="demo-accounts">
       <button class="acc" onclick="quick('alice')">
         <div class="avatar av-0">A</div>
-        <div class="meta"><div class="n">alice</div><div class="d">KYC: FULL · лимит 50 млн сум</div></div>
+        <div class="meta"><div class="n">alice</div><div class="d" data-i18n="acc_alice">KYC: FULL · лимит 50 млн сум</div></div>
         <svg class="go" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
       </button>
       <button class="acc" onclick="quick('bob')">
         <div class="avatar av-1">B</div>
-        <div class="meta"><div class="n">bob</div><div class="d">KYC: BASIC · лимит 5 млн сум</div></div>
+        <div class="meta"><div class="n">bob</div><div class="d" data-i18n="acc_bob">KYC: BASIC · лимит 5 млн сум</div></div>
         <svg class="go" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
       </button>
     </div>
 
-    <div class="divider">или вручную</div>
-    <div class="field"><input id="liUser" placeholder="Логин" autocomplete="username"></div>
-    <div class="field"><input id="liPass" type="password" placeholder="Пароль" autocomplete="current-password"></div>
-    <button class="btn btn-primary" id="liGo" onclick="login()">Войти</button>
+    <div class="divider" data-i18n="or_manual">или вручную</div>
+    <div class="field"><input id="liUser" data-i18n-ph="ph_login" placeholder="Логин" autocomplete="username"></div>
+    <div class="field"><input id="liPass" type="password" data-i18n-ph="ph_pass" placeholder="Пароль" autocomplete="current-password"></div>
+    <button class="btn btn-primary" id="liGo" onclick="login()" data-i18n="btn_login">Войти</button>
     <div class="err" id="liErr"></div>
-    <a href="/about" style="display:block;text-align:center;margin-top:16px;color:var(--cyan);font-size:13.5px;text-decoration:none">Как это вообще работает? →</a>
+    <a href="/about" data-i18n="how_works" style="display:block;text-align:center;margin-top:16px;color:var(--cyan);font-size:13.5px;text-decoration:none">Как это вообще работает? →</a>
   </div>
 </div>
 
@@ -273,67 +286,71 @@
       <h1>Hamyon</h1>
     </div>
     <div class="userbox">
+      <div class="lang">
+        <button data-l="ru" onclick="setLang('ru')">RU</button>
+        <button data-l="uz" onclick="setLang('uz')">UZ</button>
+      </div>
       <span class="chip" id="kycBadge"></span>
       <div class="avatar av-0" id="uAvatar">?</div>
       <span class="uname" id="uName"></span>
-      <button class="logout" onclick="logout()">выйти</button>
+      <button class="logout" onclick="logout()" data-i18n="logout">выйти</button>
     </div>
   </div>
 
   <div class="grid">
     <div>
       <div class="balance-card">
-        <div class="lbl">Доступно</div>
-        <div class="avail"><span id="bAvail"><span class="skel" style="display:inline-block;width:180px;height:34px"></span></span> <small>сум</small></div>
+        <div class="lbl" data-i18n="avail">Доступно</div>
+        <div class="avail"><span id="bAvail"><span class="skel" style="display:inline-block;width:180px;height:34px"></span></span> <small data-i18n="cur">сум</small></div>
         <div class="subbal">
-          <span>Баланс <b id="bTotal">…</b></span>
-          <span id="heldWrap">Заморожено <b id="bHeld">…</b></span>
+          <span><span data-i18n="balance">Баланс</span> <b id="bTotal">…</b></span>
+          <span id="heldWrap"><span data-i18n="frozen">Заморожено</span> <b id="bHeld">…</b></span>
         </div>
-        <div class="wallet-id">Кошелёк <code id="wId">…</code>
-          <button class="copy" onclick="copyWallet()">копировать</button>
+        <div class="wallet-id"><span data-i18n="wallet">Кошелёк</span> <code id="wId">…</code>
+          <button class="copy" onclick="copyWallet()" data-i18n="copy">копировать</button>
         </div>
       </div>
 
       <div class="actions">
         <button class="act" onclick="openPay('topup')">
           <div class="ico"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 21h16"/></svg></div>
-          <span>Пополнить</span></button>
+          <span data-i18n="a_topup">Пополнить</span></button>
         <button class="act" onclick="openPay('withdraw')">
           <div class="ico"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21V9"/><path d="M7 14l5-5 5 5"/><path d="M4 3h16"/></svg></div>
-          <span>Вывести</span></button>
+          <span data-i18n="a_withdraw">Вывести</span></button>
         <button class="act" onclick="openTransfer()">
           <div class="ico"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg></div>
-          <span>Перевести</span></button>
+          <span data-i18n="a_transfer">Перевести</span></button>
         <button class="act" onclick="openMyQR()">
           <div class="ico"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14h1M14 20h1M20 20h1"/></svg></div>
-          <span>Мой QR</span></button>
+          <span data-i18n="a_myqr">Мой QR</span></button>
         <button class="act" onclick="openInvoice()">
           <div class="ico"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 2h14v20l-2.8-2-2.8 2-2.8-2-2.8 2V2z"/><path d="M9 8h6M9 12h6"/></svg></div>
-          <span>Счёт (QR)</span></button>
+          <span data-i18n="a_invoice">Счёт (QR)</span></button>
         <button class="act" onclick="openScan()">
           <div class="ico"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8V5a2 2 0 012-2h3M16 3h3a2 2 0 012 2v3M21 16v3a2 2 0 01-2 2h-3M8 21H5a2 2 0 01-2-2v-3"/><path d="M3 12h18"/></svg></div>
-          <span>Сканировать</span></button>
+          <span data-i18n="a_scan">Сканировать</span></button>
       </div>
 
       <div class="kyc-line">
-        <span>KYC-лимит на 30 дней</span><b id="kycLimit">…</b>
+        <span data-i18n="kyc_limit_30">KYC-лимит на 30 дней</span><b id="kycLimit">…</b>
       </div>
     </div>
 
     <div class="panel">
-      <h2>История <button class="copy" onclick="reloadHistory()">обновить</button></h2>
+      <h2><span data-i18n="history">История</span> <button class="copy" onclick="reloadHistory()" data-i18n="refresh">обновить</button></h2>
       <div class="filters" id="filters">
-        <button class="fchip on" data-f="">Все</button>
-        <button class="fchip" data-f="credit">Зачисления</button>
-        <button class="fchip" data-f="debit">Списания</button>
-        <button class="fchip" data-f="hold">Заморозки</button>
-        <button class="fchip" data-f="reversal">Разморозки</button>
+        <button class="fchip on" data-f="" data-i18n="f_all">Все</button>
+        <button class="fchip" data-f="credit" data-i18n="f_credit">Зачисления</button>
+        <button class="fchip" data-f="debit" data-i18n="f_debit">Списания</button>
+        <button class="fchip" data-f="hold" data-i18n="f_hold">Заморозки</button>
+        <button class="fchip" data-f="reversal" data-i18n="f_reversal">Разморозки</button>
       </div>
       <div id="hList">
         <div class="hitem"><div class="skel" style="width:42px;height:42px"></div><div class="ht"><div class="skel" style="width:140px;height:14px;margin-bottom:6px"></div><div class="skel" style="width:80px;height:10px"></div></div><div class="skel" style="width:90px;height:16px"></div></div>
         <div class="hitem"><div class="skel" style="width:42px;height:42px"></div><div class="ht"><div class="skel" style="width:160px;height:14px;margin-bottom:6px"></div><div class="skel" style="width:70px;height:10px"></div></div><div class="skel" style="width:80px;height:16px"></div></div>
       </div>
-      <button class="btn btn-ghost more hidden" id="moreBtn" onclick="busy(this,loadMore)">Загрузить ещё</button>
+      <button class="btn btn-ghost more hidden" id="moreBtn" onclick="busy(this,loadMore)" data-i18n="load_more">Загрузить ещё</button>
     </div>
   </div>
 </div>
@@ -342,12 +359,129 @@
 <div class="toasts" id="toasts"></div>
 
 <script>
+/* ============ i18n ============ */
+const I18N = {
+  ru:{
+    doctitle:'Hamyon — кошелёк',
+    brand_sub:'Ledger-кошелёк · деньги как журнал событий',
+    acc_alice:'KYC: FULL · лимит 50 млн сум',
+    acc_bob:'KYC: BASIC · лимит 5 млн сум',
+    or_manual:'или вручную', ph_login:'Логин', ph_pass:'Пароль', btn_login:'Войти',
+    how_works:'Как это вообще работает? →', logout:'выйти',
+    avail:'Доступно', cur:'сум', balance:'Баланс', frozen:'Заморожено', wallet:'Кошелёк', copy:'копировать',
+    a_topup:'Пополнить', a_withdraw:'Вывести', a_transfer:'Перевести', a_myqr:'Мой QR',
+    a_invoice:'Счёт (QR)', a_scan:'Сканировать',
+    kyc_limit_30:'KYC-лимит на 30 дней', history:'История', refresh:'обновить',
+    f_all:'Все', f_credit:'Зачисления', f_debit:'Списания', f_hold:'Заморозки', f_reversal:'Разморозки',
+    load_more:'Загрузить ещё', empty_title:'Операций пока нет', empty_sub:'Пополните кошелёк, чтобы начать',
+    h_credit:'Зачисление', h_debit:'Списание', h_hold:'Заморозка', h_reversal:'Разморозка',
+    day_today:'Сегодня', day_yesterday:'Вчера', hold_active:'активна', hold_released:'снята',
+    succ_journal:'Запись добавлена в журнал операций', done:'Готово', amount_label:'Сумма, сум',
+    otp_title:'Код подтверждения', otp_valid:'Код действует',
+    otp_demo_note:'Demo-режим: код «пришёл в Telegram» — смотрите консоль сервера (make run).',
+    otp_demo_filled:'Demo: код подставлен автоматически (в реальном приложении придёт в Telegram).',
+    cancel:'Отмена', confirm:'Подтвердить', otp_expired:'Код истёк — закройте окно и начните заново',
+    enter_amount:'Введите сумму', cont:'Продолжить',
+    pay_topup_title:'Пополнение', pay_withdraw_title:'Вывод средств',
+    pay_topup_sub:'С карты на кошелёк', pay_withdraw_sub:'Сумма будет заморожена до подтверждения кодом',
+    pay_topup_word:'Пополнение', pay_withdraw_word:'Вывод',
+    succ_topup:'Кошелёк пополнен', succ_withdraw:'Средства выведены',
+    tr_title:'Перевод', tr_sub:'По логину или номеру телефона', tr_to:'Кому', tr_ph:'bob или +99890…',
+    find:'Найти', enter_wallet_id:'ввести ID кошелька', self_transfer:'Нельзя перевести самому себе',
+    choose_recipient:'Сначала выберите получателя', by_wallet_id:'по ID кошелька',
+    recipient_wallet_id:'ID кошелька получателя', tr_word:'Перевод', tr_done:'Перевод выполнен',
+    myqr_title:'Мой QR', myqr_sub:'Постоянный — покажите его, чтобы вам перевели',
+    copy_id:'Копировать ID', close:'Закрыть',
+    inv_title:'Выставить счёт', inv_sub:'Одноразовый QR с фиксированной суммой', create_qr:'Создать QR',
+    inv_bill_on:'Счёт на', inv_meta_a:'Одноразовый · подписан сервером · истекает через',
+    inv_token_summary:'Токен для демо «сканирования»', copy_token:'Копировать токен',
+    scan_title:'Сканировать QR', scan_sub:'В демо вместо камеры — вставьте токен счёта',
+    paste_clipboard:'Вставить из буфера обмена', check:'Проверить', confirm_pay:'Подтвердите оплату',
+    recipient:'Получатель', sig_verified:'Подпись сервера проверена', pay:'Оплатить',
+    pay_invoice_word:'Оплата счёта', succ_invoice:'Счёт оплачен',
+    toast_incoming:'Поступление', toast_wallet_copied:'ID кошелька скопирован', toast_token_copied:'Токен скопирован',
+    bad_login:'Неверный логин или пароль', op_unavailable:'Операция недоступна', not_found:'Не найдено', error:'Ошибка',
+    err_insufficient_funds:'Недостаточно средств', err_kyc_limit_exceeded:'Превышен KYC-лимит за 30 дней',
+    err_kyc_rejected:'KYC отклонён — операции запрещены', err_otp_invalid:'Неверный код',
+    err_otp_locked:'Слишком много попыток — вход в OTP заблокирован на 10 минут',
+    err_otp_missing_or_expired:'Код истёк, начните операцию заново',
+    err_qr_already_used:'Этот QR уже использован', err_qr_invalid:'QR недействителен или истёк',
+    err_invalid_state_transition:'Заявка уже обработана', err_kyc_already_pending:'Заявка KYC уже на рассмотрении',
+    err_recipient_not_found:'Получатель не найден',
+  },
+  uz:{
+    doctitle:'Hamyon — raqamli hamyon',
+    brand_sub:'Ledger hamyon · pul hodisalar jurnali sifatida',
+    acc_alice:'KYC: FULL · limit 50 mln so‘m',
+    acc_bob:'KYC: BASIC · limit 5 mln so‘m',
+    or_manual:'yoki qo‘lda', ph_login:'Login', ph_pass:'Parol', btn_login:'Kirish',
+    how_works:'Bu qanday ishlaydi? →', logout:'chiqish',
+    avail:'Mavjud', cur:'so‘m', balance:'Balans', frozen:'Muzlatilgan', wallet:'Hamyon', copy:'nusxalash',
+    a_topup:'To‘ldirish', a_withdraw:'Yechib olish', a_transfer:'O‘tkazma', a_myqr:'Mening QR',
+    a_invoice:'Hisob (QR)', a_scan:'Skanerlash',
+    kyc_limit_30:'30 kunlik KYC limiti', history:'Tarix', refresh:'yangilash',
+    f_all:'Hammasi', f_credit:'Kirimlar', f_debit:'Chiqimlar', f_hold:'Muzlatishlar', f_reversal:'Bo‘shatishlar',
+    load_more:'Yana yuklash', empty_title:'Hozircha amallar yo‘q', empty_sub:'Boshlash uchun hamyonni to‘ldiring',
+    h_credit:'Kirim', h_debit:'Chiqim', h_hold:'Muzlatish', h_reversal:'Bo‘shatish',
+    day_today:'Bugun', day_yesterday:'Kecha', hold_active:'faol', hold_released:'olib tashlandi',
+    succ_journal:'Yozuv amallar jurnaliga qo‘shildi', done:'Tayyor', amount_label:'Summa, so‘m',
+    otp_title:'Tasdiqlash kodi', otp_valid:'Kod amal qiladi',
+    otp_demo_note:'Demo rejim: kod «Telegramga keldi» — server konsolini ko‘ring (make run).',
+    otp_demo_filled:'Demo: kod avtomatik kiritildi (haqiqiy ilovada Telegram orqali keladi).',
+    cancel:'Bekor qilish', confirm:'Tasdiqlash', otp_expired:'Kod muddati tugadi — oynani yopib, qaytadan boshlang',
+    enter_amount:'Summani kiriting', cont:'Davom etish',
+    pay_topup_title:'To‘ldirish', pay_withdraw_title:'Mablag‘ yechish',
+    pay_topup_sub:'Kartadan hamyonga', pay_withdraw_sub:'Summa kod bilan tasdiqlanmaguncha muzlatiladi',
+    pay_topup_word:'To‘ldirish', pay_withdraw_word:'Yechish',
+    succ_topup:'Hamyon to‘ldirildi', succ_withdraw:'Mablag‘ yechib olindi',
+    tr_title:'O‘tkazma', tr_sub:'Login yoki telefon raqami bo‘yicha', tr_to:'Kimga', tr_ph:'bob yoki +99890…',
+    find:'Topish', enter_wallet_id:'hamyon ID kiritish', self_transfer:'O‘zingizga o‘tkaza olmaysiz',
+    choose_recipient:'Avval qabul qiluvchini tanlang', by_wallet_id:'hamyon ID bo‘yicha',
+    recipient_wallet_id:'Qabul qiluvchi hamyon ID', tr_word:'O‘tkazma', tr_done:'O‘tkazma bajarildi',
+    myqr_title:'Mening QR', myqr_sub:'Doimiy — sizga pul o‘tkazishlari uchun ko‘rsating',
+    copy_id:'ID nusxalash', close:'Yopish',
+    inv_title:'Hisob chiqarish', inv_sub:'Belgilangan summali bir martalik QR', create_qr:'QR yaratish',
+    inv_bill_on:'Hisob:', inv_meta_a:'Bir martalik · server imzolagan · tugashiga',
+    inv_token_summary:'Demo «skaner» uchun token', copy_token:'Token nusxalash',
+    scan_title:'QR skanerlash', scan_sub:'Demoda kamera o‘rniga — hisob tokenini joylang',
+    paste_clipboard:'Buferdan joylash', check:'Tekshirish', confirm_pay:'To‘lovni tasdiqlang',
+    recipient:'Qabul qiluvchi', sig_verified:'Server imzosi tekshirildi', pay:'To‘lash',
+    pay_invoice_word:'Hisob to‘lovi', succ_invoice:'Hisob to‘landi',
+    toast_incoming:'Tushum', toast_wallet_copied:'Hamyon ID nusxalandi', toast_token_copied:'Token nusxalandi',
+    bad_login:'Noto‘g‘ri login yoki parol', op_unavailable:'Amal mavjud emas', not_found:'Topilmadi', error:'Xato',
+    err_insufficient_funds:'Mablag‘ yetarli emas', err_kyc_limit_exceeded:'30 kunlik KYC limiti oshib ketdi',
+    err_kyc_rejected:'KYC rad etilgan — amallar taqiqlangan', err_otp_invalid:'Noto‘g‘ri kod',
+    err_otp_locked:'Juda ko‘p urinish — OTP 10 daqiqaga bloklandi',
+    err_otp_missing_or_expired:'Kod muddati tugadi, amalni qaytadan boshlang',
+    err_qr_already_used:'Bu QR allaqachon ishlatilgan', err_qr_invalid:'QR yaroqsiz yoki muddati tugagan',
+    err_invalid_state_transition:'So‘rov allaqachon qayta ishlangan', err_kyc_already_pending:'KYC so‘rovi ko‘rib chiqilmoqda',
+    err_recipient_not_found:'Qabul qiluvchi topilmadi',
+  },
+};
+let LANG = localStorage.getItem('hamyon_lang') || 'ru';
+const t = k => (I18N[LANG] && I18N[LANG][k]) || I18N.ru[k] || k;
+const cur = () => t('cur');
+
+function applyStatic(){
+  document.documentElement.lang = LANG;
+  document.title = t('doctitle');
+  document.querySelectorAll('[data-i18n]').forEach(el => el.textContent = t(el.dataset.i18n));
+  document.querySelectorAll('[data-i18n-ph]').forEach(el => el.placeholder = t(el.dataset.i18nPh));
+  document.querySelectorAll('.lang button').forEach(b => b.classList.toggle('on', b.dataset.l === LANG));
+}
+function setLang(l){
+  LANG = l;
+  localStorage.setItem('hamyon_lang', l);
+  applyStatic();
+  if (S.token){ loadKyc(); if(!S.paginated) reloadHistory(); }
+}
+
 /* ============ state & helpers ============ */
 const S = { token:null, user:null, wallet:null, cursor:null, filter:'', polls:[],
             paginated:false, lastBalance:null, quietUntil:0 };
 const $ = id => document.getElementById(id);
 
-const fmt = t => (t/100).toLocaleString('ru-RU', {maximumFractionDigits:2});
+const fmt = t2 => (t2/100).toLocaleString('ru-RU', {maximumFractionDigits:2});
 const digitsOf = v => String(v).replace(/\D/g,'');
 const uzs = v => Number(digitsOf(v)) * 100;   // UZS string -> tiyin
 const avCls = n => 'av-' + ([...n].reduce((a,c)=>a+c.charCodeAt(0),0) % 4);
@@ -361,20 +495,6 @@ const ICONS = {
   ok : '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>',
 };
 
-const ERR = {
-  insufficient_funds:'Недостаточно средств',
-  kyc_limit_exceeded:'Превышен KYC-лимит за 30 дней',
-  kyc_rejected:'KYC отклонён — операции запрещены',
-  otp_invalid:'Неверный код',
-  otp_locked:'Слишком много попыток — вход в OTP заблокирован на 10 минут',
-  otp_missing_or_expired:'Код истёк, начните операцию заново',
-  qr_already_used:'Этот QR уже использован',
-  qr_invalid:'QR недействителен или истёк',
-  invalid_state_transition:'Заявка уже обработана',
-  kyc_already_pending:'Заявка KYC уже на рассмотрении',
-  recipient_not_found:'Получатель не найден',
-};
-
 async function api(path, opts={}){
   const headers = {'Content-Type':'application/json', ...(opts.headers||{})};
   if (S.token) headers['Authorization'] = 'Token ' + S.token;
@@ -384,11 +504,11 @@ async function api(path, opts={}){
   if (text) { try { data = JSON.parse(text); } catch(e){} }
   if (!res.ok){
     const code = data && data.code;
-    const msg = code ? (ERR[code]||code)
-              : res.status===403 ? 'Операция недоступна'
-              : res.status===404 ? 'Не найдено'
+    const msg = code ? (t('err_'+code)!=='err_'+code ? t('err_'+code) : code)
+              : res.status===403 ? t('op_unavailable')
+              : res.status===404 ? t('not_found')
               : data && data.detail ? data.detail
-              : data ? Object.values(data).flat().join(' ') : ('Ошибка ' + res.status);
+              : data ? Object.values(data).flat().join(' ') : (t('error') + ' ' + res.status);
     const err = new Error(msg); err.status = res.status; err.code = code; throw err;
   }
   return data;
@@ -413,8 +533,8 @@ function animateNum(el, to){
   el._v = to;
   if (from === to){ el.textContent = fmt(to); return; }
   const t0 = performance.now(), dur = 550;
-  (function tick(t){
-    const k = Math.min(1, (t - t0)/dur), e = 1-Math.pow(1-k,3);
+  (function tick(tt){
+    const k = Math.min(1, (tt - t0)/dur), e = 1-Math.pow(1-k,3);
     el.textContent = fmt(Math.round(from + (to-from)*e));
     if (k < 1) requestAnimationFrame(tick);
   })(t0);
@@ -435,7 +555,7 @@ async function login(){
   try{
     const body = new URLSearchParams({username:$('liUser').value, password:$('liPass').value});
     const res = await fetch('/api/auth/token/', {method:'POST', body});
-    if (!res.ok) throw new Error('Неверный логин или пароль');
+    if (!res.ok) throw new Error(t('bad_login'));
     S.token = (await res.json()).token;
     S.user = $('liUser').value;
     localStorage.setItem('hamyon', JSON.stringify({token:S.token, user:S.user}));
@@ -474,7 +594,7 @@ async function loadBalance(){
     $('bHeld').textContent  = fmt(b.held);
     $('heldWrap').className = b.held > 0 ? 'warn' : '';
     if (S.lastBalance !== null && b.balance > S.lastBalance && Date.now() > S.quietUntil){
-      toast('Поступление +' + fmt(b.balance - S.lastBalance) + ' сум');
+      toast(t('toast_incoming') + ' +' + fmt(b.balance - S.lastBalance) + ' ' + cur());
       reloadHistory();
     }
     S.lastBalance = b.balance;
@@ -487,18 +607,18 @@ async function loadKyc(){
     const badge = $('kycBadge');
     badge.textContent = 'KYC: ' + k.level.toUpperCase();
     badge.className = 'chip kyc-' + k.level;
-    $('kycLimit').textContent = fmt(k.spending_limit_30d) + ' сум';
+    $('kycLimit').textContent = fmt(k.spending_limit_30d) + ' ' + cur();
   }catch(e){}
 }
 
-function copyWallet(){ navigator.clipboard.writeText(S.wallet.id); toast('ID кошелька скопирован'); }
+function copyWallet(){ navigator.clipboard.writeText(S.wallet.id); toast(t('toast_wallet_copied')); }
 
 /* ============ history ============ */
 const HMETA = {
-  credit:  {ico:ICONS.in,  cls:'in',  name:'Зачисление', acls:'amt-plus',  sign:'+'},
-  debit:   {ico:ICONS.out, cls:'out', name:'Списание',   acls:'amt-minus', sign:'−'},
-  hold:    {ico:ICONS.hold,cls:'hold',name:'Заморозка',  acls:'amt-hold',  sign:''},
-  reversal:{ico:ICONS.rev, cls:'rev', name:'Разморозка', acls:'amt-rev',   sign:''},
+  credit:  {ico:ICONS.in,  cls:'in',  key:'h_credit',   acls:'amt-plus',  sign:'+'},
+  debit:   {ico:ICONS.out, cls:'out', key:'h_debit',    acls:'amt-minus', sign:'−'},
+  hold:    {ico:ICONS.hold,cls:'hold',key:'h_hold',     acls:'amt-hold',  sign:''},
+  reversal:{ico:ICONS.rev, cls:'rev', key:'h_reversal', acls:'amt-rev',   sign:''},
 };
 
 document.querySelectorAll('#filters .fchip').forEach(ch => ch.onclick = () => {
@@ -511,8 +631,8 @@ document.querySelectorAll('#filters .fchip').forEach(ch => ch.onclick = () => {
 function dayLabel(d){
   const now = new Date(), y = new Date(); y.setDate(now.getDate()-1);
   const same = (a,b)=>a.toDateString()===b.toDateString();
-  if (same(d, now)) return 'Сегодня';
-  if (same(d, y)) return 'Вчера';
+  if (same(d, now)) return t('day_today');
+  if (same(d, y)) return t('day_yesterday');
   return d.toLocaleDateString('ru-RU', {day:'numeric', month:'long'});
 }
 
@@ -543,7 +663,7 @@ function renderHistory(items, replace){
   const list = $('hList');
   if (replace) list.innerHTML = '';
   if (!items.length && replace){
-    list.innerHTML = '<div class="empty"><div class="big">🪙</div>Операций пока нет<br>Пополните кошелёк, чтобы начать</div>';
+    list.innerHTML = `<div class="empty"><div class="big">🪙</div>${t('empty_title')}<br>${t('empty_sub')}</div>`;
     return;
   }
   for (const e of items){
@@ -555,15 +675,15 @@ function renderHistory(items, replace){
       S.lastDay = label;
     }
     const stat = e.type==='hold'
-      ? `<span class="hstat ${e.status==='pending'?'st-pending':'st-released'}">${e.status==='pending'?'активна':'снята'}</span>` : '';
+      ? `<span class="hstat ${e.status==='pending'?'st-pending':'st-released'}">${e.status==='pending'?t('hold_active'):t('hold_released')}</span>` : '';
     list.insertAdjacentHTML('beforeend', `
       <div class="hitem">
         <div class="hico ${m.cls}">${m.ico}</div>
         <div class="ht">
-          <div class="t1">${m.name}${stat}</div>
+          <div class="t1">${t(m.key)}${stat}</div>
           <div class="t2">${d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})}</div>
         </div>
-        <div class="hamt ${m.acls}">${m.sign}${fmt(e.amount)} сум</div>
+        <div class="hamt ${m.acls}">${m.sign}${fmt(e.amount)} ${cur()}</div>
       </div>`);
   }
 }
@@ -582,14 +702,14 @@ function successModal(title, amount){
     <svg class="ck" viewBox="0 0 56 56"><circle cx="28" cy="28" r="26.5"/><path d="M17 29l8 8 15-16"/></svg>
     <h3>${title}</h3>
     <div class="success-amt">${amount}</div>
-    <p class="sub" style="margin-top:4px">Запись добавлена в журнал операций</p>
-    <button class="btn btn-primary" onclick="closeModal()" style="margin-top:14px">Готово</button>
+    <p class="sub" style="margin-top:4px">${t('succ_journal')}</p>
+    <button class="btn btn-primary" onclick="closeModal()" style="margin-top:14px">${t('done')}</button>
   </div>`);
   loadBalance(); reloadHistory();
 }
 
 function amountField(id, placeholder){
-  return `<div class="mrow"><label>Сумма, сум</label>
+  return `<div class="mrow"><label>${t('amount_label')}</label>
     <input id="${id}" class="big-in" inputmode="numeric" placeholder="${placeholder}">
     <div class="amount-chips">
       ${[10000,50000,100000,500000].map(v =>
@@ -605,12 +725,12 @@ function otpModal(title, sub, onSubmit){
       ${Array.from({length:6},(_,i)=>`<input class="otp-b" id="otp${i}" maxlength="1" inputmode="numeric">`).join('')}
     </div>
     <div class="otp-bar-wrap"><div class="otp-bar" id="otpBar" style="width:100%"></div></div>
-    <div class="otp-timer" id="otpTimer">Код действует <b>1:30</b></div>
-    <div class="otp-note">${ICONS.tg} Demo-режим: код «пришёл в Telegram» — смотрите консоль сервера (make run).</div>
+    <div class="otp-timer" id="otpTimer">${t('otp_valid')} <b>1:30</b></div>
+    <div class="otp-note">${ICONS.tg} ${t('otp_demo_note')}</div>
     <div class="merr" id="mErr"></div>
     <div class="mbtns">
-      <button class="btn btn-ghost" onclick="closeModal()">Отмена</button>
-      <button class="btn btn-primary" id="otpGo">Подтвердить</button>
+      <button class="btn btn-ghost" onclick="closeModal()">${t('cancel')}</button>
+      <button class="btn btn-primary" id="otpGo">${t('confirm')}</button>
     </div>`);
 
   const boxes = Array.from({length:6},(_,i)=>$('otp'+i));
@@ -639,8 +759,7 @@ function otpModal(title, sub, onSubmit){
     if (r && r.code && $('otpBoxes')) {
       [...String(r.code)].forEach((dch, i) => { if (boxes[i]) boxes[i].value = dch; });
       const note = document.querySelector('.otp-note');
-      if (note) note.innerHTML =
-        ICONS.tg + ' Demo: kod avtomatik kiritildi (haqiqiy ilovada Telegram orqali keladi).';
+      if (note) note.innerHTML = ICONS.tg + ' ' + t('otp_demo_filled');
     }
   }).catch(() => {});
 
@@ -650,8 +769,8 @@ function otpModal(title, sub, onSubmit){
     if (!$('otpBar')) { clearInterval(iv); return; }
     $('otpBar').style.width = Math.max(0, left/90*100) + '%';
     $('otpTimer').innerHTML = left>0
-      ? `Код действует <b>${Math.floor(left/60)}:${String(left%60).padStart(2,'0')}</b>`
-      : '<span style="color:var(--red)">Код истёк — закройте окно и начните заново</span>';
+      ? `${t('otp_valid')} <b>${Math.floor(left/60)}:${String(left%60).padStart(2,'0')}</b>`
+      : `<span style="color:var(--red)">${t('otp_expired')}</span>`;
     if (left<=0){ clearInterval(iv); $('otpGo').disabled = true; }
   }, 1000);
 
@@ -673,27 +792,27 @@ function otpModal(title, sub, onSubmit){
 function openPay(direction){
   const isUp = direction==='topup';
   modal(`
-    <h3>${isUp?'Пополнение':'Вывод средств'}</h3>
-    <p class="sub">${isUp?'С карты на кошелёк':'Сумма будет заморожена до подтверждения кодом'}</p>
+    <h3>${isUp?t('pay_topup_title'):t('pay_withdraw_title')}</h3>
+    <p class="sub">${isUp?t('pay_topup_sub'):t('pay_withdraw_sub')}</p>
     ${amountField('payAmt', isUp?'50 000':'20 000')}
     <div class="merr" id="mErr"></div>
     <div class="mbtns">
-      <button class="btn btn-ghost" onclick="closeModal()">Отмена</button>
-      <button class="btn btn-primary" id="payGo">Продолжить</button>
+      <button class="btn btn-ghost" onclick="closeModal()">${t('cancel')}</button>
+      <button class="btn btn-primary" id="payGo">${t('cont')}</button>
     </div>`);
   moneyInput($('payAmt')); $('payAmt').focus();
   $('payGo').onclick = () => busy($('payGo'), async ()=>{
     $('mErr').textContent = '';
     const amt = uzs($('payAmt').value);
-    if (!amt){ $('mErr').textContent='Введите сумму'; return; }
+    if (!amt){ $('mErr').textContent=t('enter_amount'); return; }
     try{
       const pr = await api('/payments/initiate/', {method:'POST', body:JSON.stringify({
         wallet_id:S.wallet.id, direction, amount:amt, idempotency_key:crypto.randomUUID()})});
       loadBalance();
-      otpModal('Код подтверждения', `${isUp?'Пополнение':'Вывод'} · ${fmt(amt)} сум`, async code => {
+      otpModal(t('otp_title'), `${isUp?t('pay_topup_word'):t('pay_withdraw_word')} · ${fmt(amt)} ${cur()}`, async code => {
         await api(`/payments/${pr.id}/confirm/`, {method:'POST', body:JSON.stringify({code})});
-        successModal(isUp?'Кошелёк пополнен':'Средства выведены',
-                     (isUp?'+':'−') + fmt(amt) + ' сум');
+        successModal(isUp?t('succ_topup'):t('succ_withdraw'),
+                     (isUp?'+':'−') + fmt(amt) + ' ' + cur());
       });
     }catch(e){ $('mErr').textContent = e.message; }
   });
@@ -702,16 +821,16 @@ function openPay(direction){
 /* ---- p2p transfer ---- */
 function openTransfer(){
   modal(`
-    <h3>Перевод</h3><p class="sub">По логину или номеру телефона</p>
-    <div class="mrow"><label>Кому</label>
+    <h3>${t('tr_title')}</h3><p class="sub">${t('tr_sub')}</p>
+    <div class="mrow"><label>${t('tr_to')}</label>
       <div style="display:flex;gap:9px">
-        <input id="trQuery" placeholder="bob или +99890…">
-        <button class="btn btn-ghost" style="width:auto;padding:0 18px" id="trFind">Найти</button>
+        <input id="trQuery" placeholder="${t('tr_ph')}">
+        <button class="btn btn-ghost" style="width:auto;padding:0 18px" id="trFind">${t('find')}</button>
       </div>
       <div class="qchips">
         <button class="achip" onclick="$('trQuery').value='alice';$('trFind').click()">alice</button>
         <button class="achip" onclick="$('trQuery').value='bob';$('trFind').click()">bob</button>
-        <button class="link" id="trManualLink">ввести ID кошелька</button>
+        <button class="link" id="trManualLink">${t('enter_wallet_id')}</button>
       </div>
       <div id="recipBox"></div>
     </div>
@@ -719,8 +838,8 @@ function openTransfer(){
       ${amountField('trAmt', '10 000')}
       <div class="merr" id="mErr"></div>
       <div class="mbtns">
-        <button class="btn btn-ghost" onclick="closeModal()">Отмена</button>
-        <button class="btn btn-primary" id="trGo">Продолжить</button>
+        <button class="btn btn-ghost" onclick="closeModal()">${t('cancel')}</button>
+        <button class="btn btn-primary" id="trGo">${t('cont')}</button>
       </div>
     </div>
     <div class="merr hidden" id="mErrTop"></div>`);
@@ -735,7 +854,7 @@ function openTransfer(){
       const r = await api('/p2p/resolve/', {method:'POST',
         body:JSON.stringify({query: $('trQuery').value.trim()})});
       if (r.wallet_id === S.wallet.id){
-        $('mErrTop').textContent = 'Нельзя перевести самому себе'; return;
+        $('mErrTop').textContent = t('self_transfer'); return;
       }
       recipient = r;
       $('recipBox').innerHTML = `
@@ -752,7 +871,7 @@ function openTransfer(){
 
   $('trManualLink').onclick = () => {
     $('recipBox').innerHTML = `<div class="mrow" style="margin-top:10px">
-      <label>ID кошелька получателя</label><input id="trUuid" placeholder="xxxxxxxx-xxxx-…"></div>`;
+      <label>${t('recipient_wallet_id')}</label><input id="trUuid" placeholder="xxxxxxxx-xxxx-…"></div>`;
     recipient = 'manual';
     $('trRest').classList.remove('hidden');
   };
@@ -761,16 +880,16 @@ function openTransfer(){
     $('mErr').textContent = '';
     const to = recipient === 'manual' ? ($('trUuid')?.value||'').trim() : recipient?.wallet_id;
     const amt = uzs($('trAmt').value);
-    if (!to){ $('mErr').textContent='Сначала выберите получателя'; return; }
-    if (!amt){ $('mErr').textContent='Введите сумму'; return; }
-    const who = recipient === 'manual' ? 'по ID кошелька' : recipient.username;
+    if (!to){ $('mErr').textContent=t('choose_recipient'); return; }
+    if (!amt){ $('mErr').textContent=t('enter_amount'); return; }
+    const who = recipient === 'manual' ? t('by_wallet_id') : recipient.username;
     try{
       const tr = await api('/p2p/transfer/', {method:'POST', body:JSON.stringify({
         sender_wallet:S.wallet.id, recipient_wallet:to, amount:amt,
         idempotency_key:crypto.randomUUID()})});
-      otpModal('Код подтверждения', `Перевод ${who} · ${fmt(amt)} сум`, async code => {
+      otpModal(t('otp_title'), `${t('tr_word')} ${who} · ${fmt(amt)} ${cur()}`, async code => {
         await api(`/p2p/transfers/${tr.id}/confirm/`, {method:'POST', body:JSON.stringify({code})});
-        successModal('Перевод выполнен', '−' + fmt(amt) + ' сум');
+        successModal(t('tr_done'), '−' + fmt(amt) + ' ' + cur());
       });
     }catch(e){ $('mErr').textContent = e.message; }
   });
@@ -778,12 +897,12 @@ function openTransfer(){
 
 /* ---- static QR ---- */
 async function openMyQR(){
-  modal(`<h3>Мой QR</h3><p class="sub">Постоянный — покажите его, чтобы вам перевели</p>
+  modal(`<h3>${t('myqr_title')}</h3><p class="sub">${t('myqr_sub')}</p>
     <img class="qr-img" id="sqr" alt="QR">
     <div class="tok">${S.wallet.id}</div>
     <div class="mbtns">
-      <button class="btn btn-ghost" onclick="copyWallet()">Копировать ID</button>
-      <button class="btn btn-primary" onclick="closeModal()">Закрыть</button>
+      <button class="btn btn-ghost" onclick="copyWallet()">${t('copy_id')}</button>
+      <button class="btn btn-primary" onclick="closeModal()">${t('close')}</button>
     </div>`);
   const res = await fetch(`/api/wallet/${S.wallet.id}/qr/static/`,
                           {headers:{Authorization:'Token '+S.token}});
@@ -793,30 +912,30 @@ async function openMyQR(){
 /* ---- dynamic QR (invoice) ---- */
 function openInvoice(){
   modal(`
-    <h3>Выставить счёт</h3><p class="sub">Одноразовый QR с фиксированной суммой</p>
+    <h3>${t('inv_title')}</h3><p class="sub">${t('inv_sub')}</p>
     ${amountField('invAmt', '7 000')}
     <div class="merr" id="mErr"></div>
     <div class="mbtns">
-      <button class="btn btn-ghost" onclick="closeModal()">Отмена</button>
-      <button class="btn btn-primary" id="invGo">Создать QR</button>
+      <button class="btn btn-ghost" onclick="closeModal()">${t('cancel')}</button>
+      <button class="btn btn-primary" id="invGo">${t('create_qr')}</button>
     </div>`);
   moneyInput($('invAmt')); $('invAmt').focus();
   $('invGo').onclick = () => busy($('invGo'), async ()=>{
     $('mErr').textContent = '';
     const amt = uzs($('invAmt').value);
-    if (!amt){ $('mErr').textContent='Введите сумму'; return; }
+    if (!amt){ $('mErr').textContent=t('enter_amount'); return; }
     try{
       const d = await api('/p2p/qr/dynamic/', {method:'POST',
         body:JSON.stringify({wallet_id:S.wallet.id, amount:amt})});
       modal(`
-        <h3>Счёт на ${fmt(amt)} сум</h3>
-        <p class="sub">Одноразовый · подписан сервером · истекает через <span id="invLeft">15:00</span></p>
+        <h3>${t('inv_bill_on')} ${fmt(amt)} ${cur()}</h3>
+        <p class="sub">${t('inv_meta_a')} <span id="invLeft">15:00</span></p>
         <img class="qr-img" src="data:image/png;base64,${d.qr_png_base64}">
-        <details><summary>Токен для демо «сканирования»</summary>
+        <details><summary>${t('inv_token_summary')}</summary>
           <div class="tok" id="invTok">${d.token}</div></details>
         <div class="mbtns">
-          <button class="btn btn-ghost" onclick="navigator.clipboard.writeText($('invTok').textContent.trim());toast('Токен скопирован')">Копировать токен</button>
-          <button class="btn btn-primary" onclick="closeModal()">Готово</button>
+          <button class="btn btn-ghost" onclick="navigator.clipboard.writeText($('invTok').textContent.trim());toast(t('toast_token_copied'))">${t('copy_token')}</button>
+          <button class="btn btn-primary" onclick="closeModal()">${t('done')}</button>
         </div>`);
       let left = 15*60;
       const iv = setInterval(()=>{
@@ -833,13 +952,13 @@ function openInvoice(){
 /* ---- scan & pay ---- */
 function openScan(){
   modal(`
-    <h3>Сканировать QR</h3><p class="sub">В демо вместо камеры — вставьте токен счёта</p>
+    <h3>${t('scan_title')}</h3><p class="sub">${t('scan_sub')}</p>
     <div class="mrow"><textarea id="scTok" rows="4" placeholder="eyJhbGciOi…"></textarea></div>
-    <button class="link" id="scPaste">Вставить из буфера обмена</button>
+    <button class="link" id="scPaste">${t('paste_clipboard')}</button>
     <div class="merr" id="mErr"></div>
     <div class="mbtns">
-      <button class="btn btn-ghost" onclick="closeModal()">Отмена</button>
-      <button class="btn btn-primary" id="scGo">Проверить</button>
+      <button class="btn btn-ghost" onclick="closeModal()">${t('cancel')}</button>
+      <button class="btn btn-primary" id="scGo">${t('check')}</button>
     </div>`);
   $('scPaste').onclick = async ()=>{
     try{ $('scTok').value = await navigator.clipboard.readText(); }catch(e){}
@@ -851,24 +970,24 @@ function openScan(){
       const r = await api('/p2p/scan/', {method:'POST', body:JSON.stringify({token})});
       const it = r.transfer_intent;
       modal(`
-        <h3>Подтвердите оплату</h3>
+        <h3>${t('confirm_pay')}</h3>
         <div class="intent">
-          <div class="a">${fmt(it.amount)} сум</div>
-          <div class="to">Получатель <code>${it.recipient_wallet.slice(0,8)}…</code></div>
-          <div class="verified">${ICONS.ok} Подпись сервера проверена</div>
+          <div class="a">${fmt(it.amount)} ${cur()}</div>
+          <div class="to">${t('recipient')} <code>${it.recipient_wallet.slice(0,8)}…</code></div>
+          <div class="verified">${ICONS.ok} ${t('sig_verified')}</div>
         </div>
         <div class="merr" id="mErr"></div>
         <div class="mbtns">
-          <button class="btn btn-ghost" onclick="closeModal()">Отмена</button>
-          <button class="btn btn-primary" id="payInv">Оплатить</button>
+          <button class="btn btn-ghost" onclick="closeModal()">${t('cancel')}</button>
+          <button class="btn btn-primary" id="payInv">${t('pay')}</button>
         </div>`);
       $('payInv').onclick = () => busy($('payInv'), async ()=>{
         try{
           const tr = await api('/p2p/transfer/', {method:'POST', body:JSON.stringify({
             sender_wallet:S.wallet.id, qr_token:token})});
-          otpModal('Код подтверждения', `Оплата счёта · ${fmt(it.amount)} сум`, async code => {
+          otpModal(t('otp_title'), `${t('pay_invoice_word')} · ${fmt(it.amount)} ${cur()}`, async code => {
             await api(`/p2p/transfers/${tr.id}/confirm/`, {method:'POST', body:JSON.stringify({code})});
-            successModal('Счёт оплачен', '−' + fmt(it.amount) + ' сум');
+            successModal(t('succ_invoice'), '−' + fmt(it.amount) + ' ' + cur());
           });
         }catch(e){ $('mErr').textContent = e.message; }
       });
@@ -877,6 +996,7 @@ function openScan(){
 }
 
 /* ============ boot ============ */
+applyStatic();
 (async () => {
   const saved = localStorage.getItem('hamyon');
   if (saved){
