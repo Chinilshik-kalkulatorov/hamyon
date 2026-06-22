@@ -17,6 +17,7 @@ urlpatterns = [
     path("api/status/", api_root),
     path("admin/", admin.site.urls),
     path("api/auth/token/", obtain_auth_token),
+    path("api/", include("apps.users.urls")),
     path("api/", include("apps.core.urls")),
     path("api/", include("apps.history.urls")),
     path("api/kyc/", include("apps.kyc.urls")),

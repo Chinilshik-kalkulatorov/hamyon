@@ -165,9 +165,20 @@ def cmd_login(chat_id, args):
         send(chat_id, "⚠️ Сервис недоступен, попробуй позже.")
         return
     if r.status_code == 200 and "token" in r.json():
-        sessions[str(chat_id)] = {"token": r.json()["token"], "username": username}
+        token = r.json()["token"]
+        sessions[str(chat_id)] = {"token": token, "username": username}
         save_sessions()
-        send(chat_id, f"✅ Вход выполнен как <b>{username}</b>. Команда /balance покажет баланс.")
+        # Привязываем этот чат к аккаунту, чтобы реальные OTP приходили сюда.
+        # chat_id берётся из Telegram-апдейта (не из ввода) — подделать нельзя.
+        bound = False
+        try:
+            br = api_post(token, "/api/me/telegram/", {"telegram_chat_id": str(chat_id)})
+            bound = br.status_code == 200
+        except requests.RequestException:
+            pass
+        tail = ("OTP-коды теперь будут приходить в этот чат."
+                if bound else "(OTP-привязку включить не удалось — коды придут другим способом.)")
+        send(chat_id, f"✅ Вход выполнен как <b>{username}</b>. {tail}\nКоманда /balance покажет баланс.")
     else:
         send(chat_id, "❌ Неверный логин или пароль.")
 
@@ -284,7 +295,7 @@ def cmd_send(chat_id, args):
 
     msg = (
         f"🔐 Перевод <b>{fmt_uzs(amount_tiyin)}</b> → <b>{rec['username']}</b> создан.\n"
-        f"Подтверди кодом: <code>/confirm код</code>\n"
+        f"Код отправлен тебе в этот чат. Подтверди: <code>/confirm код</code>\n"
         f"Отменить: /cancel"
     )
     # В демо-режиме подскажем код (в проде эндпоинт отдаёт null — подсказки не будет,
