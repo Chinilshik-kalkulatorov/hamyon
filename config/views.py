@@ -1,4 +1,15 @@
 from django.http import JsonResponse
+from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.throttling import ScopedRateThrottle
+
+
+class ThrottledLogin(ObtainAuthToken):
+    """Token login with its own tight per-IP rate limit (anti brute-force).
+    Overrides the global throttles so the 'login' scope (see settings
+    DEFAULT_THROTTLE_RATES) applies instead of the looser anon rate."""
+
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "login"
 
 
 def api_root(request):

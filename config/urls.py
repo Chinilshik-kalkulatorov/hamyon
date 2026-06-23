@@ -3,10 +3,8 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 from django.views.generic import TemplateView
-from rest_framework.authtoken.views import obtain_auth_token
-
 from config.demo import DemoLastOTP
-from config.views import api_root
+from config.views import ThrottledLogin, api_root
 
 urlpatterns = [
     # Demo deployment: the wallet UI is served at the root so reviewers see a
@@ -16,7 +14,7 @@ urlpatterns = [
     path("about/", TemplateView.as_view(template_name="about.html")),
     path("api/status/", api_root),
     path("admin/", admin.site.urls),
-    path("api/auth/token/", obtain_auth_token),
+    path("api/auth/token/", ThrottledLogin.as_view()),
     path("api/", include("apps.users.urls")),
     path("api/", include("apps.core.urls")),
     path("api/", include("apps.history.urls")),

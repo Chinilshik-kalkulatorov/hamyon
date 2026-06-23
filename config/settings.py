@@ -93,6 +93,18 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
     ],
+    # Rate limiting. Backed by the Redis cache (CACHES["default"]).
+    # The login endpoint has its own tight "login" scope (anti-brute-force);
+    # see config.views.ThrottledLogin.
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.AnonRateThrottle",
+        "rest_framework.throttling.UserRateThrottle",
+    ],
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": os.getenv("THROTTLE_ANON", "40/min"),
+        "user": os.getenv("THROTTLE_USER", "240/min"),
+        "login": os.getenv("THROTTLE_LOGIN", "10/min"),
+    },
 }
 
 AUTH_PASSWORD_VALIDATORS = [
