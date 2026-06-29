@@ -11,7 +11,7 @@
   :root{
     --bg:#0a0a0a; --card:#141414; --card2:#101010; --line:#1f1f1f; --line2:#2a2a2a;
     --text:#f4f4f4; --muted:#a8a8a8; --dim:#6a6a6a;
-    --accent:#5B21B6; --accent2:#7C3AED; --accent-tx:#A78BFA; --cyan:#229ED9; --info:#229ED9; --red:#E4485D; --amber:#E8C47A;
+    --accent:#7C3AED; --accent2:#8B5CF6; --accent-tx:#A78BFA; --cyan:#229ED9; --info:#229ED9; --red:#E4485D; --amber:#E8C47A;
     --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
     --shadow:none; --glow:0 0 18px rgba(91,33,182,.2);
   }
@@ -22,6 +22,7 @@
       linear-gradient(to right,#151515 1px,transparent 1px),
       linear-gradient(to bottom,#151515 1px,transparent 1px);
     background-size:40px 40px;
+    background-position:center top;
     color:var(--text);
     font:16px/1.65 "Onest",-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif;
     -webkit-font-smoothing:antialiased; min-height:100vh;
@@ -40,9 +41,9 @@
   .open-app:hover{border-color:var(--accent2);color:var(--accent-tx);text-decoration:none}
   .nav-right{display:flex;align-items:center;gap:10px}
   .tgbtn{display:inline-grid;place-items:center;width:38px;height:38px;border-radius:12px;
-    background:var(--info);flex:none}
+    background:var(--card);border:1px solid var(--line2);flex:none}
   .tgbtn svg{width:19px;height:19px}
-  .tgbtn:hover{filter:brightness(1.07);text-decoration:none}
+  .tgbtn:hover{border-color:var(--info);text-decoration:none}
 
   .hero{margin-bottom:14px}
   .hero h2{font-size:34px;line-height:1.2;margin:0 0 10px;letter-spacing:-.02em;font-weight:600}
@@ -114,7 +115,7 @@
     </div>
     <div class="nav-right">
       <a class="tgbtn" href="https://t.me/hamyon_bot_bot" target="_blank" rel="noopener" aria-label="Telegram" title="Telegram">
-        <svg viewBox="0 0 496 512" fill="#fff"><path d="M446.7 98.6l-67.6 318.8c-5.1 22.5-18.4 28.1-37.3 17.5l-103-75.9-49.7 47.8c-5.5 5.5-10.1 10.1-20.7 10.1l7.4-104.9 190.9-172.5c8.3-7.4-1.8-11.5-12.9-4.1L117.8 284 16.2 252.2c-22.1-6.9-22.5-22.1 4.6-32.7L418.2 66.4c18.4-6.8 34.5 4.4 28.5 32.2z"/></svg>
+        <svg viewBox="0 0 496 512" fill="#229ED9"><path d="M446.7 98.6l-67.6 318.8c-5.1 22.5-18.4 28.1-37.3 17.5l-103-75.9-49.7 47.8c-5.5 5.5-10.1 10.1-20.7 10.1l7.4-104.9 190.9-172.5c8.3-7.4-1.8-11.5-12.9-4.1L117.8 284 16.2 252.2c-22.1-6.9-22.5-22.1 4.6-32.7L418.2 66.4c18.4-6.8 34.5 4.4 28.5 32.2z"/></svg>
       </a>
       <a class="open-app" href="/">Открыть кошелёк →</a>
     </div>
