@@ -95,7 +95,7 @@ STR = {
         "cancel_ok": "Черновик перевода отменён. (Запрос сам истечёт на сервере.)",
         "cancel_none": "Нет активного перевода.",
         "whoami_in": "вошёл как <b>{username}</b>", "whoami_out": "не в системе",
-        "whoami": "chat_id: <code>{chat_id}</code>\nСтатус: {state}{extra}",
+        "whoami": "chat_id: <code>{cid}</code>\nСтатус: {state}{extra}",
         "whoami_draft": "\nЧерновик: {amount} → {recipient} (ждёт /confirm)",
         "info": (
             "ℹ️ <b>Hamyon</b> — это ledger-кошелёк: деньги хранятся не как одно число, "
@@ -176,7 +176,7 @@ STR = {
         "cancel_ok": "O‘tkazma qoralamasi bekor qilindi. (So‘rov serverda o‘zi tugaydi.)",
         "cancel_none": "Faol o‘tkazma yo‘q.",
         "whoami_in": "<b>{username}</b> sifatida kirgan", "whoami_out": "tizimda emas",
-        "whoami": "chat_id: <code>{chat_id}</code>\nHolat: {state}{extra}",
+        "whoami": "chat_id: <code>{cid}</code>\nHolat: {state}{extra}",
         "whoami_draft": "\nQoralama: {amount} → {recipient} (/confirm kutilmoqda)",
         "info": (
             "ℹ️ <b>Hamyon</b> — bu ledger-hamyon: pul bitta son sifatida emas, balki "
@@ -649,7 +649,7 @@ def cmd_whoami(chat_id, _args):
     if sess and sess.get("pending"):
         p = sess["pending"]
         extra = T(chat_id, "whoami_draft", amount=fmt_uzs(p["amount_tiyin"]), recipient=p["recipient"])
-    send(chat_id, T(chat_id, "whoami", chat_id=chat_id, state=state, extra=extra))
+    send(chat_id, T(chat_id, "whoami", cid=chat_id, state=state, extra=extra))
 
 
 COMMANDS = {
