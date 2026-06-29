@@ -189,6 +189,48 @@
   .empty{color:var(--muted);text-align:center;padding:46px 0;font-size:14px}
   .empty .big{font-size:34px;margin-bottom:8px}
 
+  /* ---------- tabs (История / Аналитика) ---------- */
+  .tabs{display:flex;align-items:center;gap:6px;margin:0 0 16px;border-bottom:1px solid var(--line);padding-bottom:2px}
+  .tab{font-size:15px;font-weight:600;color:var(--muted);padding:6px 4px 10px;position:relative;background:none}
+  .tab.on{color:var(--text)}
+  .tab.on::after{content:"";position:absolute;left:0;right:0;bottom:-2px;height:2px;background:var(--accent2);border-radius:2px}
+  .tabs-act{margin-left:auto}
+
+  /* ---------- analytics ---------- */
+  .ana-eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);
+    margin:18px 2px 10px;display:flex;align-items:center;gap:7px}
+  .ana-eyebrow:first-child{margin-top:4px}
+  .ana-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .ana-stat{background:var(--card2);border:1px solid var(--line2);border-radius:12px;padding:14px}
+  .ana-stat .k{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+  .ana-stat .v{font-family:var(--mono);font-size:19px;font-weight:600;margin-top:6px;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .ana-stat .v small{font-size:11px;color:var(--muted)}
+  .v-in{color:var(--accent-tx)} .v-out{color:var(--red)} .v-net-pos{color:var(--accent-tx)} .v-net-neg{color:var(--red)}
+  .bd-row{display:flex;align-items:center;gap:12px;padding:9px 2px}
+  .bd-ico{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;flex:none;background:#0a0a0a;border:1px solid var(--line)}
+  .bd-ico.in{color:var(--accent-tx)} .bd-ico.out{color:var(--red)}
+  .bd-main{flex:1;min-width:0}
+  .bd-top{display:flex;justify-content:space-between;font-size:13.5px;font-weight:600;margin-bottom:6px}
+  .bd-top .n{color:var(--muted);font-weight:500}
+  .bd-amt{font-family:var(--mono);font-variant-numeric:tabular-nums}
+  .bd-bar{height:5px;border-radius:99px;background:#0a0a0a;overflow:hidden}
+  .bd-bar > i{display:block;height:100%;border-radius:99px}
+  .bd-bar.in > i{background:var(--accent2)} .bd-bar.out > i{background:var(--red)}
+  .bd-cnt{font-family:var(--mono);font-size:11px;color:var(--dim);margin-left:8px}
+
+  .chart{display:flex;align-items:flex-end;gap:3px;height:96px;padding:6px 2px 0;border-bottom:1px solid var(--line)}
+  .chart .col{flex:1;display:flex;flex-direction:column;justify-content:flex-end;gap:2px;min-width:0;height:100%}
+  .chart .bin{background:var(--accent2);border-radius:2px 2px 0 0;min-height:0}
+  .chart .bout{background:var(--red);border-radius:0 0 2px 2px;min-height:0;opacity:.85}
+  .chart-legend{display:flex;gap:16px;margin-top:8px;font-size:11px;color:var(--muted);font-family:var(--mono)}
+  .chart-legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px;vertical-align:middle}
+
+  .cp-row{display:flex;align-items:center;gap:12px;padding:9px 2px}
+  .cp-main{flex:1;min-width:0}
+  .cp-name{font-weight:600;font-size:14px}
+  .cp-sub{font-family:var(--mono);font-size:11.5px;color:var(--muted);margin-top:2px}
+  .cp-sub .out{color:var(--red)} .cp-sub .in{color:var(--accent-tx)}
+
   /* skeletons */
   .skel{border-radius:8px;background:linear-gradient(90deg,#141414 25%,#1f1f1f 45%,#141414 65%);
     background-size:200% 100%;animation:shimmer 1.2s infinite}
@@ -374,19 +416,28 @@
     </div>
 
     <div class="panel">
-      <h2><span data-i18n="history">История</span> <button class="copy" onclick="reloadHistory()" data-i18n="refresh">обновить</button></h2>
-      <div class="filters" id="filters">
-        <button class="fchip on" data-f="" data-i18n="f_all">Все</button>
-        <button class="fchip" data-f="credit" data-i18n="f_credit">Зачисления</button>
-        <button class="fchip" data-f="debit" data-i18n="f_debit">Списания</button>
-        <button class="fchip" data-f="hold" data-i18n="f_hold">Заморозки</button>
-        <button class="fchip" data-f="reversal" data-i18n="f_reversal">Разморозки</button>
+      <div class="tabs">
+        <button class="tab on" data-tab="history" onclick="switchTab('history')" data-i18n="history">История</button>
+        <button class="tab" data-tab="analytics" onclick="switchTab('analytics')" data-i18n="analytics">Аналитика</button>
+        <button class="copy tabs-act" id="tabAct" onclick="refreshTab()" data-i18n="refresh">обновить</button>
       </div>
-      <div id="hList">
-        <div class="hitem"><div class="skel" style="width:42px;height:42px"></div><div class="ht"><div class="skel" style="width:140px;height:14px;margin-bottom:6px"></div><div class="skel" style="width:80px;height:10px"></div></div><div class="skel" style="width:90px;height:16px"></div></div>
-        <div class="hitem"><div class="skel" style="width:42px;height:42px"></div><div class="ht"><div class="skel" style="width:160px;height:14px;margin-bottom:6px"></div><div class="skel" style="width:70px;height:10px"></div></div><div class="skel" style="width:80px;height:16px"></div></div>
+
+      <div id="histView">
+        <div class="filters" id="filters">
+          <button class="fchip on" data-f="" data-i18n="f_all">Все</button>
+          <button class="fchip" data-f="credit" data-i18n="f_credit">Зачисления</button>
+          <button class="fchip" data-f="debit" data-i18n="f_debit">Списания</button>
+          <button class="fchip" data-f="hold" data-i18n="f_hold">Заморозки</button>
+          <button class="fchip" data-f="reversal" data-i18n="f_reversal">Разморозки</button>
+        </div>
+        <div id="hList">
+          <div class="hitem"><div class="skel" style="width:42px;height:42px"></div><div class="ht"><div class="skel" style="width:140px;height:14px;margin-bottom:6px"></div><div class="skel" style="width:80px;height:10px"></div></div><div class="skel" style="width:90px;height:16px"></div></div>
+          <div class="hitem"><div class="skel" style="width:42px;height:42px"></div><div class="ht"><div class="skel" style="width:160px;height:14px;margin-bottom:6px"></div><div class="skel" style="width:70px;height:10px"></div></div><div class="skel" style="width:80px;height:16px"></div></div>
+        </div>
+        <button class="btn btn-ghost more hidden" id="moreBtn" onclick="busy(this,loadMore)" data-i18n="load_more">Загрузить ещё</button>
       </div>
-      <button class="btn btn-ghost more hidden" id="moreBtn" onclick="busy(this,loadMore)" data-i18n="load_more">Загрузить ещё</button>
+
+      <div id="anaView" class="hidden"></div>
     </div>
   </div>
 </div>
@@ -444,6 +495,14 @@ const I18N = {
     err_qr_already_used:'Этот QR уже использован', err_qr_invalid:'QR недействителен или истёк',
     err_invalid_state_transition:'Заявка уже обработана', err_kyc_already_pending:'Заявка KYC уже на рассмотрении',
     err_recipient_not_found:'Получатель не найден',
+    analytics:'Аналитика', ana_period:'за 30 дней',
+    ana_in:'Поступило', ana_out:'Потрачено', ana_net:'Нетто',
+    ana_incoming:'Поступления', ana_outgoing:'Расходы',
+    ana_flow:'Поток по дням', ana_top:'Топ-контрагенты',
+    bd_topup:'Пополнения', bd_received:'Получено', bd_withdraw:'Выводы', bd_sent:'Отправлено',
+    chart_in:'поступления', chart_out:'расходы',
+    cp_sent:'отпр.', cp_received:'получ.', ops_short:'оп.',
+    ana_empty:'За этот период операций нет',
   },
   uz:{
     doctitle:'Hamyon — raqamli hamyon',
@@ -492,6 +551,14 @@ const I18N = {
     err_qr_already_used:'Bu QR allaqachon ishlatilgan', err_qr_invalid:'QR yaroqsiz yoki muddati tugagan',
     err_invalid_state_transition:'So‘rov allaqachon qayta ishlangan', err_kyc_already_pending:'KYC so‘rovi ko‘rib chiqilmoqda',
     err_recipient_not_found:'Qabul qiluvchi topilmadi',
+    analytics:'Tahlil', ana_period:'30 kun ichida',
+    ana_in:'Tushdi', ana_out:'Sarflandi', ana_net:'Sof',
+    ana_incoming:'Tushumlar', ana_outgoing:'Chiqimlar',
+    ana_flow:'Kunlik oqim', ana_top:'Top-kontragentlar',
+    bd_topup:'To‘ldirishlar', bd_received:'Qabul qilindi', bd_withdraw:'Yechishlar', bd_sent:'Yuborilgan',
+    chart_in:'tushum', chart_out:'chiqim',
+    cp_sent:'yub.', cp_received:'qab.', ops_short:'am.',
+    ana_empty:'Bu davr uchun amallar yo‘q',
   },
 };
 let LANG = localStorage.getItem('hamyon_lang') || 'ru';
@@ -510,7 +577,11 @@ function setLang(l){
   LANG = l;
   localStorage.setItem('hamyon_lang', l);
   applyStatic();
-  if (S.token){ loadKyc(); if(!S.paginated) reloadHistory(); }
+  if (S.token){
+    loadKyc();
+    if (curTab === 'analytics') loadAnalytics();
+    else if (!S.paginated) reloadHistory();
+  }
 }
 function toggleLang(){ setLang(LANG === 'ru' ? 'uz' : 'ru'); }
 
@@ -726,6 +797,73 @@ function renderHistory(items, replace){
         <div class="hamt ${m.acls}">${m.sign}${fmt(e.amount)} ${cur()}</div>
       </div>`);
   }
+}
+
+/* ============ tabs + analytics ============ */
+let curTab = 'history';
+function switchTab(tab){
+  curTab = tab;
+  document.querySelectorAll('.tab').forEach(b => b.classList.toggle('on', b.dataset.tab === tab));
+  $('histView').classList.toggle('hidden', tab !== 'history');
+  $('anaView').classList.toggle('hidden', tab !== 'analytics');
+  if (tab === 'analytics') loadAnalytics();
+}
+function refreshTab(){ curTab === 'analytics' ? loadAnalytics() : reloadHistory(); }
+
+async function loadAnalytics(){
+  try{
+    const a = await api(`/wallet/${S.wallet.id}/analytics/?days=30`);
+    renderAnalytics(a);
+  }catch(e){ $('anaView').innerHTML = `<div class="empty">${e.message}</div>`; }
+}
+
+const BD_META = {
+  topup:   {key:'bd_topup',    dir:'in'},
+  received:{key:'bd_received', dir:'in'},
+  withdraw:{key:'bd_withdraw', dir:'out'},
+  sent:    {key:'bd_sent',     dir:'out'},
+};
+
+function renderAnalytics(a){
+  if (a.in_total === 0 && a.out_total === 0){
+    $('anaView').innerHTML = `<div class="empty"><div class="big">📊</div>${t('ana_empty')}</div>`;
+    return;
+  }
+  const net = a.net, netCls = net >= 0 ? 'v-net-pos' : 'v-net-neg', sign = net >= 0 ? '+' : '−';
+  const byKey = Object.fromEntries(a.breakdown.map(b => [b.key, b]));
+  const maxBd = Math.max(1, ...a.breakdown.map(b => b.total));
+  const bdRow = key => {
+    const b = byKey[key], m = BD_META[key];
+    return `<div class="bd-row">
+      <div class="bd-ico ${m.dir}">${m.dir === 'in' ? ICONS.in : ICONS.out}</div>
+      <div class="bd-main">
+        <div class="bd-top"><span class="n">${t(m.key)}<span class="bd-cnt">${b.count} ${t('ops_short')}</span></span>
+          <span class="bd-amt">${fmt(b.total)}</span></div>
+        <div class="bd-bar ${m.dir}"><i style="width:${Math.round(b.total / maxBd * 100)}%"></i></div>
+      </div></div>`;
+  };
+  const maxFlow = Math.max(1, ...a.daily.map(d => Math.max(d.in, d.out)));
+  const cols = a.daily.map(d => `<div class="col" title="${d.date}">
+      <div class="bin" style="height:${Math.round(d.in / maxFlow * 44)}px"></div>
+      <div class="bout" style="height:${Math.round(d.out / maxFlow * 44)}px"></div></div>`).join('');
+  const cps = a.top_counterparties.map(c => `<div class="cp-row">
+      <div class="avatar ${avCls(c.username)}">${c.username[0].toUpperCase()}</div>
+      <div class="cp-main"><div class="cp-name">${cap(c.username)}</div>
+        <div class="cp-sub"><span class="out">↑ ${fmt(c.sent)}</span> · <span class="in">↓ ${fmt(c.received)}</span> ${cur()}</div></div></div>`).join('');
+
+  $('anaView').innerHTML = `
+    <div class="ana-eyebrow">${t('ana_period')}</div>
+    <div class="ana-stats">
+      <div class="ana-stat"><div class="k">${t('ana_in')}</div><div class="v v-in">${fmt(a.in_total)} <small>${cur()}</small></div></div>
+      <div class="ana-stat"><div class="k">${t('ana_out')}</div><div class="v v-out">${fmt(a.out_total)} <small>${cur()}</small></div></div>
+      <div class="ana-stat"><div class="k">${t('ana_net')}</div><div class="v ${netCls}">${sign}${fmt(Math.abs(net))} <small>${cur()}</small></div></div>
+    </div>
+    <div class="ana-eyebrow">${t('ana_incoming')}</div>${bdRow('topup')}${bdRow('received')}
+    <div class="ana-eyebrow">${t('ana_outgoing')}</div>${bdRow('withdraw')}${bdRow('sent')}
+    <div class="ana-eyebrow">${t('ana_flow')}</div>
+    <div class="chart">${cols}</div>
+    <div class="chart-legend"><span><i style="background:var(--accent2)"></i>${t('chart_in')}</span><span><i style="background:var(--red)"></i>${t('chart_out')}</span></div>
+    ${a.top_counterparties.length ? `<div class="ana-eyebrow">${t('ana_top')}</div>${cps}` : ''}`;
 }
 
 /* ============ modals ============ */

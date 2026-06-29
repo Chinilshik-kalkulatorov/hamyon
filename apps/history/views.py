@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.core.models import LedgerEntry, Wallet
+from apps.core.services.analytics import get_wallet_analytics
 
 from .pagination import DEFAULT_PAGE_SIZE, InvalidCursor, paginate
 from .serializers import LedgerEntrySerializer
@@ -70,6 +71,19 @@ class HistoryDetailView(APIView):
             LedgerEntry.objects.select_related("wallet"), pk=pk, wallet__user=request.user
         )
         return Response(LedgerEntrySerializer(entry).data)
+
+
+class AnalyticsView(APIView):
+    """GET /api/wallet/{id}/analytics/?days=30 — spend summary for the owner."""
+
+    def get(self, request, wallet_id):
+        get_object_or_404(Wallet, id=wallet_id, user=request.user)
+        days = request.query_params.get("days", 30)
+        try:
+            days = int(days)
+        except (TypeError, ValueError):
+            days = 30
+        return Response(get_wallet_analytics(wallet_id, days))
 
 
 class HistoryExportView(APIView):
