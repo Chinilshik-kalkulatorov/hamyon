@@ -43,9 +43,9 @@
     font-family:var(--mono);font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;transition:.15s}
   .langtog:hover{border-color:var(--dim);color:var(--text);text-decoration:none}
   .tgbtn{display:inline-grid;place-items:center;width:38px;height:38px;border-radius:12px;
-    background:var(--info);flex:none}
-  .tgbtn svg{width:32px;height:32px}
-  .tgbtn:hover{filter:brightness(1.08);box-shadow:0 0 16px rgba(34,158,217,.55);text-decoration:none}
+    background:var(--card2);border:1px solid var(--line2);flex:none}
+  .tgbtn svg{width:19px;height:19px}
+  .tgbtn:hover{border-color:var(--info);text-decoration:none}
   .open-app{padding:9px 16px;border-radius:12px;border:1px solid var(--line2);
     color:var(--text);font-size:14px;font-weight:600;white-space:nowrap}
   .open-app:hover{border-color:var(--accent2);color:var(--accent-tx);text-decoration:none}
@@ -129,7 +129,7 @@
     <div class="nav-right">
       <button class="langtog" onclick="toggleLang()">UZ</button>
       <a class="tgbtn" href="https://t.me/hamyon_bot_bot" target="_blank" rel="noopener" aria-label="Telegram" title="Telegram">
-        <svg viewBox="0 0 24 24" fill="#fff"><path d="M5.491 11.74c3.5-1.546 5.835-2.566 7.003-3.06 3.335-1.394 4.028-1.636 4.48-1.644.099-.002.32.023.464.14a.51.51 0 0 1 .17.33c.016.094.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.2-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.692-1.653-1.123-2.678-1.799-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212-.07-.063-.174-.041-.249-.024-.106.024-1.793 1.139-5.062 3.345-.479.329-.913.489-1.302.481-.428-.009-1.252-.242-1.865-.442-.751-.244-1.349-.374-1.297-.789.027-.216.325-.437.893-.663z"/></svg>
+        <svg viewBox="0 0 24 24" fill="#229ED9"><path d="M5.491 11.74c3.5-1.546 5.835-2.566 7.003-3.06 3.335-1.394 4.028-1.636 4.48-1.644.099-.002.32.023.464.14a.51.51 0 0 1 .17.33c.016.094.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.2-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.692-1.653-1.123-2.678-1.799-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212-.07-.063-.174-.041-.249-.024-.106.024-1.793 1.139-5.062 3.345-.479.329-.913.489-1.302.481-.428-.009-1.252-.242-1.865-.442-.751-.244-1.349-.374-1.297-.789.027-.216.325-.437.893-.663z"/></svg>
       </a>
       <a class="open-app" href="/" data-i18n="open_app">Открыть кошелёк →</a>
     </div>
