@@ -26,7 +26,7 @@
     background-size:40px 40px;
     color:var(--text);
     font:15px/1.5 "Onest",-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif;
-    min-height:100vh; -webkit-font-smoothing:antialiased;
+    min-height:100vh; -webkit-font-smoothing:antialiased; overflow-x:hidden;
   }
   .hidden{display:none!important}
   button{font:inherit;cursor:pointer;border:0;border-radius:11px;color:var(--text);background:none}
@@ -52,11 +52,11 @@
   .btn-ghost.busy::after{border-color:rgba(255,255,255,.2);border-top-color:var(--accent2)}
   @keyframes spin{to{transform:rotate(360deg)}}
 
-  /* ---------- language switch ---------- */
-  .lang{display:flex;gap:2px;background:var(--card2);border:1px solid var(--line2);
-    border-radius:999px;padding:3px;flex:none}
-  .lang button{padding:4px 11px;border-radius:999px;font-size:12px;font-weight:600;color:var(--muted);font-family:var(--mono)}
-  .lang button.on{background:var(--accent);color:#fff}
+  /* ---------- language toggle (one click switches RU<->UZ) ---------- */
+  .langtog{flex:none;min-width:40px;padding:6px 11px;border-radius:999px;text-align:center;
+    background:var(--card2);border:1px solid var(--line2);
+    font-family:var(--mono);font-size:12px;font-weight:600;color:var(--muted);transition:.15s}
+  .langtog:hover{border-color:var(--dim);color:var(--text)}
 
   /* ---------- login ---------- */
   .login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
@@ -95,27 +95,38 @@
     background:rgba(10,10,10,.72);backdrop-filter:blur(12px);position:sticky;top:0;z-index:5}
   .top .logo h1{font-size:18px}
   .top .logo-badge{width:34px;height:34px;border-radius:10px}
-  .userbox{display:flex;align-items:center;gap:14px}
-  .botlink{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:12px;
-    background:var(--info);color:#fff;font-size:13px;font-weight:600;text-decoration:none;white-space:nowrap;transition:.15s}
+  .userbox{display:flex;align-items:center;gap:10px}
+  .iconbtn{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;flex:none;
+    text-decoration:none;transition:.15s}
+  .botlink{background:var(--info);color:#fff}
   .botlink:hover{filter:brightness(1.08)}
   .chip{padding:4px 11px;border-radius:999px;font-size:11px;font-weight:600;letter-spacing:.04em;font-family:var(--mono)}
-  .kyc-full{background:rgba(91,33,182,.18);color:var(--accent-tx)}
+  .kyc-full{background:rgba(91,33,182,.16);color:var(--accent-tx)}
   .kyc-basic{background:rgba(34,158,217,.14);color:var(--info)}
   .kyc-unverified{background:#1f1f1f;color:var(--muted)}
   .uname{font-weight:600}
   .userbox .avatar{width:34px;height:34px;font-size:14px}
-  .logout{color:var(--muted);font-size:13px;padding:6px;font-family:var(--mono)}
-  .logout:hover{color:var(--red)}
+  .logout{color:var(--muted);background:var(--card2);border:1px solid var(--line2)}
+  .logout:hover{color:var(--red);border-color:rgba(228,72,93,.5)}
 
   .grid{display:grid;grid-template-columns:440px 1fr;gap:26px;max-width:1200px;margin:28px auto;padding:0 26px}
   @media(max-width:1000px){.grid{grid-template-columns:1fr}}
+  @media(max-width:600px){
+    .top{padding:11px 15px}
+    .top .logo h1{font-size:16px}
+    .userbox{gap:8px}
+    .uname{display:none}
+    .grid{margin:18px auto;padding:0 15px;gap:16px}
+    .balance-card{padding:22px;border-radius:18px}
+    .avail{font-size:34px}
+    .panel{padding:18px;border-radius:18px}
+  }
 
   /* ---------- balance card ---------- */
   .balance-card{border-radius:22px;padding:28px;position:relative;overflow:hidden;
     background:var(--card2);border:1px solid var(--line2)}
   .balance-card::before{content:"";position:absolute;inset:0;
-    background:radial-gradient(420px 280px at 88% -20%, rgba(91,33,182,.22), transparent 60%)}
+    background:radial-gradient(340px 240px at 92% -30%, rgba(91,33,182,.13), transparent 60%)}
   .balance-card > *{position:relative}
   .lbl{color:var(--accent-tx);font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;font-weight:500;
     display:inline-flex;align-items:center;gap:7px}
@@ -127,15 +138,16 @@
   .subbal .warn b{color:var(--amber)}
   .wallet-id{margin-top:18px;display:flex;align-items:center;gap:9px;font-size:12px;color:var(--muted)}
   .wallet-id code{font-family:var(--mono);background:#0a0a0a;border:1px solid var(--line);padding:5px 9px;border-radius:8px;font-size:10.5px;color:var(--muted)}
-  .copy{color:var(--accent-tx);font-size:12px;padding:3px 7px;border-radius:10px;font-family:var(--mono)}
-  .copy:hover{background:rgba(91,33,182,.14)}
+  .copy{color:var(--muted);font-size:12px;padding:3px 7px;border-radius:10px;font-family:var(--mono);transition:.15s}
+  .copy:hover{color:var(--accent-tx);background:rgba(91,33,182,.12)}
 
   .actions{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:20px}
   .act{background:var(--card);border:1px solid var(--line2);border-radius:12px;padding:17px 8px 14px;
     display:flex;flex-direction:column;align-items:center;gap:9px;transition:.15s}
   .act:hover{border-color:var(--accent2)}
   .act .ico{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;
-    background:#0a0a0a;border:1px solid var(--line);color:var(--accent-tx)}
+    background:#0a0a0a;border:1px solid var(--line);color:var(--muted);transition:.15s}
+  .act:hover .ico{color:var(--accent-tx);border-color:rgba(91,33,182,.4)}
   .act span{font-size:13px;font-weight:500}
 
   .kyc-line{margin-top:18px;background:var(--card);border:1px solid var(--line2);border-radius:12px;
@@ -155,7 +167,7 @@
   .hitem{display:flex;align-items:center;gap:14px;padding:11px 6px;border-radius:11px;animation:fadeUp .25s ease}
   .hitem:hover{background:rgba(255,255,255,.025)}
   .hico{width:42px;height:42px;border-radius:11px;display:grid;place-items:center;flex:none;background:#0a0a0a;border:1px solid var(--line)}
-  .hico.in{color:var(--accent-tx)} .hico.out{color:var(--red)} .hico.hold{color:var(--amber)} .hico.rev{color:var(--muted)}
+  .hico.in{color:var(--muted)} .hico.out{color:var(--red)} .hico.hold{color:var(--amber)} .hico.rev{color:var(--muted)}
   .ht{flex:1;min-width:0}
   .ht .t1{font-weight:600;font-size:14px;display:flex;align-items:center}
   .ht .t2{color:var(--muted);font-size:12px;margin-top:1px;font-family:var(--mono)}
@@ -260,10 +272,7 @@
         <div class="logo-badge"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="3"/><path d="M2 10h20"/><path d="M6 15h4"/></svg></div>
         <h1>Hamyon</h1>
       </div>
-      <div class="lang">
-        <button data-l="ru" onclick="setLang('ru')">RU</button>
-        <button data-l="uz" onclick="setLang('uz')">UZ</button>
-      </div>
+      <button class="langtog" onclick="toggleLang()">RU</button>
     </div>
     <p class="sub" data-i18n="brand_sub">Ledger-кошелёк · деньги как журнал событий</p>
 
@@ -297,15 +306,16 @@
       <h1>Hamyon</h1>
     </div>
     <div class="userbox">
-      <div class="lang">
-        <button data-l="ru" onclick="setLang('ru')">RU</button>
-        <button data-l="uz" onclick="setLang('uz')">UZ</button>
-      </div>
+      <button class="langtog" onclick="toggleLang()">RU</button>
       <span class="chip" id="kycBadge"></span>
       <div class="avatar av-0" id="uAvatar">?</div>
       <span class="uname" id="uName"></span>
-      <a class="botlink" href="https://t.me/hamyon_bot_bot" target="_blank" rel="noopener" data-i18n="our_bot">Наш бот ↗</a>
-      <button class="logout" onclick="logout()" data-i18n="logout">выйти</button>
+      <a class="iconbtn botlink" href="https://t.me/hamyon_bot_bot" target="_blank" rel="noopener" data-i18n-title="our_bot" aria-label="Telegram">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="currentColor"><path d="M21.94 4.6 18.9 19.05c-.23 1.01-.83 1.26-1.68.79l-4.64-3.42-2.24 2.16c-.25.25-.46.46-.93.46l.33-4.73 8.6-7.77c.37-.33-.08-.52-.58-.19L7.45 13.3l-4.58-1.43c-1-.31-1.01-1 .21-1.48l17.9-6.9c.83-.31 1.56.2 1.29 1.43z"/></svg>
+      </a>
+      <button class="iconbtn logout" onclick="logout()" data-i18n-title="logout" aria-label="Logout">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+      </button>
     </div>
   </div>
 
@@ -479,7 +489,8 @@ function applyStatic(){
   document.title = t('doctitle');
   document.querySelectorAll('[data-i18n]').forEach(el => el.textContent = t(el.dataset.i18n));
   document.querySelectorAll('[data-i18n-ph]').forEach(el => el.placeholder = t(el.dataset.i18nPh));
-  document.querySelectorAll('.lang button').forEach(b => b.classList.toggle('on', b.dataset.l === LANG));
+  document.querySelectorAll('[data-i18n-title]').forEach(el => el.title = t(el.dataset.i18nTitle));
+  document.querySelectorAll('.langtog').forEach(b => b.textContent = LANG.toUpperCase());
 }
 function setLang(l){
   LANG = l;
@@ -487,6 +498,7 @@ function setLang(l){
   applyStatic();
   if (S.token){ loadKyc(); if(!S.paginated) reloadHistory(); }
 }
+function toggleLang(){ setLang(LANG === 'ru' ? 'uz' : 'ru'); }
 
 /* ============ state & helpers ============ */
 const S = { token:null, user:null, wallet:null, cursor:null, filter:'', polls:[],
