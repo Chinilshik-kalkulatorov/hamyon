@@ -146,8 +146,8 @@
     display:flex;flex-direction:column;align-items:center;gap:9px;transition:.15s}
   .act:hover{border-color:var(--accent2)}
   .act .ico{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;
-    background:#0a0a0a;border:1px solid var(--line);color:var(--muted);transition:.15s}
-  .act:hover .ico{color:var(--accent-tx);border-color:rgba(91,33,182,.4)}
+    background:#0a0a0a;border:1px solid var(--line);color:var(--accent-tx);transition:.15s}
+  .act:hover .ico{border-color:rgba(91,33,182,.4)}
   .act span{font-size:13px;font-weight:500}
 
   .kyc-line{margin-top:18px;background:var(--card);border:1px solid var(--line2);border-radius:12px;
@@ -272,19 +272,24 @@
         <div class="logo-badge"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="3"/><path d="M2 10h20"/><path d="M6 15h4"/></svg></div>
         <h1>Hamyon</h1>
       </div>
-      <button class="langtog" onclick="toggleLang()">RU</button>
+      <div style="display:flex;align-items:center;gap:10px">
+        <a class="iconbtn botlink" href="https://t.me/hamyon_bot_bot" target="_blank" rel="noopener" data-i18n-title="our_bot" aria-label="Telegram">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+        </a>
+        <button class="langtog" onclick="toggleLang()">UZ</button>
+      </div>
     </div>
     <p class="sub" data-i18n="brand_sub">Ledger-кошелёк · деньги как журнал событий</p>
 
     <div class="demo-accounts">
       <button class="acc" onclick="quick('alice')">
         <div class="avatar av-0">A</div>
-        <div class="meta"><div class="n">alice</div><div class="d" data-i18n="acc_alice">KYC: FULL · лимит 50 млн сум</div></div>
+        <div class="meta"><div class="n">Alice</div><div class="d" data-i18n="acc_alice">KYC: FULL · лимит 50 млн сум</div></div>
         <svg class="go" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
       </button>
       <button class="acc" onclick="quick('bob')">
         <div class="avatar av-1">B</div>
-        <div class="meta"><div class="n">bob</div><div class="d" data-i18n="acc_bob">KYC: BASIC · лимит 5 млн сум</div></div>
+        <div class="meta"><div class="n">Bob</div><div class="d" data-i18n="acc_bob">KYC: BASIC · лимит 5 млн сум</div></div>
         <svg class="go" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
       </button>
     </div>
@@ -306,12 +311,12 @@
       <h1>Hamyon</h1>
     </div>
     <div class="userbox">
-      <button class="langtog" onclick="toggleLang()">RU</button>
+      <button class="langtog" onclick="toggleLang()">UZ</button>
       <span class="chip" id="kycBadge"></span>
       <div class="avatar av-0" id="uAvatar">?</div>
       <span class="uname" id="uName"></span>
       <a class="iconbtn botlink" href="https://t.me/hamyon_bot_bot" target="_blank" rel="noopener" data-i18n-title="our_bot" aria-label="Telegram">
-        <svg width="19" height="19" viewBox="0 0 24 24" fill="currentColor"><path d="M21.94 4.6 18.9 19.05c-.23 1.01-.83 1.26-1.68.79l-4.64-3.42-2.24 2.16c-.25.25-.46.46-.93.46l.33-4.73 8.6-7.77c.37-.33-.08-.52-.58-.19L7.45 13.3l-4.58-1.43c-1-.31-1.01-1 .21-1.48l17.9-6.9c.83-.31 1.56.2 1.29 1.43z"/></svg>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
       </a>
       <button class="iconbtn logout" onclick="logout()" data-i18n-title="logout" aria-label="Logout">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
@@ -490,7 +495,7 @@ function applyStatic(){
   document.querySelectorAll('[data-i18n]').forEach(el => el.textContent = t(el.dataset.i18n));
   document.querySelectorAll('[data-i18n-ph]').forEach(el => el.placeholder = t(el.dataset.i18nPh));
   document.querySelectorAll('[data-i18n-title]').forEach(el => el.title = t(el.dataset.i18nTitle));
-  document.querySelectorAll('.langtog').forEach(b => b.textContent = LANG.toUpperCase());
+  document.querySelectorAll('.langtog').forEach(b => b.textContent = LANG === 'ru' ? 'UZ' : 'RU');
 }
 function setLang(l){
   LANG = l;
@@ -509,6 +514,7 @@ const fmt = t2 => (t2/100).toLocaleString('ru-RU', {maximumFractionDigits:2});
 const digitsOf = v => String(v).replace(/\D/g,'');
 const uzs = v => Number(digitsOf(v)) * 100;   // UZS string -> tiyin
 const avCls = n => 'av-' + ([...n].reduce((a,c)=>a+c.charCodeAt(0),0) % 4);
+const cap = s => s ? s[0].toUpperCase() + s.slice(1) : s;   // display names capitalised
 
 const ICONS = {
   in : '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v8M8.5 11.5L12 15l3.5-3.5"/></svg>',
@@ -597,7 +603,7 @@ async function enter(){
   let wallets = await api('/wallet/');
   if (!wallets.length) wallets = [await api('/wallet/', {method:'POST'})];
   S.wallet = wallets[0];
-  $('uName').textContent = S.user;
+  $('uName').textContent = cap(S.user);
   const av = $('uAvatar');
   av.textContent = S.user[0].toUpperCase();
   av.className = 'avatar ' + avCls(S.user);
@@ -884,7 +890,7 @@ function openTransfer(){
       $('recipBox').innerHTML = `
         <div class="recip">
           <div class="avatar ${avCls(r.username)}">${r.username[0].toUpperCase()}</div>
-          <div><div class="n">${r.username}</div><div class="p">${r.phone_masked}</div></div>
+          <div><div class="n">${cap(r.username)}</div><div class="p">${r.phone_masked}</div></div>
         </div>`;
       $('trRest').classList.remove('hidden');
       $('trAmt').focus();
@@ -906,7 +912,7 @@ function openTransfer(){
     const amt = uzs($('trAmt').value);
     if (!to){ $('mErr').textContent=t('choose_recipient'); return; }
     if (!amt){ $('mErr').textContent=t('enter_amount'); return; }
-    const who = recipient === 'manual' ? t('by_wallet_id') : recipient.username;
+    const who = recipient === 'manual' ? t('by_wallet_id') : cap(recipient.username);
     try{
       const tr = await api('/p2p/transfer/', {method:'POST', body:JSON.stringify({
         sender_wallet:S.wallet.id, recipient_wallet:to, amount:amt,

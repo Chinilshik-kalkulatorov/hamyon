@@ -38,6 +38,10 @@
   .open-app{padding:9px 16px;border-radius:12px;border:1px solid var(--line2);
     color:var(--text);font-size:14px;font-weight:600}
   .open-app:hover{border-color:var(--accent2);color:var(--accent-tx);text-decoration:none}
+  .nav-right{display:flex;align-items:center;gap:10px}
+  .tgbtn{display:inline-grid;place-items:center;width:38px;height:38px;border-radius:11px;
+    background:var(--info);color:#fff;flex:none}
+  .tgbtn:hover{filter:brightness(1.08);text-decoration:none}
 
   .hero{margin-bottom:14px}
   .hero h2{font-size:34px;line-height:1.2;margin:0 0 10px;letter-spacing:-.02em;font-weight:600}
@@ -107,7 +111,12 @@
       <div class="logo-badge"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="3"/><path d="M2 10h20"/><path d="M6 15h4"/></svg></div>
       <h1>Hamyon</h1>
     </div>
-    <a class="open-app" href="/">Открыть кошелёк →</a>
+    <div class="nav-right">
+      <a class="tgbtn" href="https://t.me/hamyon_bot_bot" target="_blank" rel="noopener" aria-label="Telegram" title="Telegram">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+      </a>
+      <a class="open-app" href="/">Открыть кошелёк →</a>
+    </div>
   </div>
 
   <div class="hero">
