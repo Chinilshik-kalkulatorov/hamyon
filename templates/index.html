@@ -231,6 +231,33 @@
   .cp-sub{font-family:var(--mono);font-size:11.5px;color:var(--muted);margin-top:2px}
   .cp-sub .out{color:var(--red)} .cp-sub .in{color:var(--accent-tx)}
 
+  /* analytics — deltas, gauge, balance chart, highlights */
+  .ana-stat .delta{font-family:var(--mono);font-size:10.5px;font-weight:600;margin-top:5px}
+  .ana-stat .delta .vs{color:var(--dim);font-weight:500}
+  .delta.up{color:var(--accent-tx)} .delta.down{color:var(--red)} .delta.flat{color:var(--dim)}
+  .bd-share{font-family:var(--mono);font-size:11px;color:var(--dim);margin-left:8px}
+
+  .gauge{background:var(--card2);border:1px solid var(--line2);border-radius:12px;padding:14px 16px}
+  .gauge-top{display:flex;justify-content:space-between;align-items:baseline;font-size:12.5px;margin-bottom:9px;gap:10px}
+  .gauge-top .lk{color:var(--muted)}
+  .gauge-top .rk{font-family:var(--mono);color:var(--text);font-variant-numeric:tabular-nums;white-space:nowrap}
+  .gauge-bar{height:8px;border-radius:99px;background:#0a0a0a;overflow:hidden}
+  .gauge-bar > i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:99px;min-width:2px}
+  .gauge-sub{font-family:var(--mono);font-size:11px;color:var(--dim);margin-top:8px;display:flex;justify-content:space-between}
+
+  .bchart-wrap{position:relative;background:var(--card2);border:1px solid var(--line2);border-radius:12px;padding:14px 14px 8px}
+  .bchart{width:100%;height:120px;display:block;overflow:visible}
+  .bchart-val{font-family:var(--mono);font-size:13px;color:var(--accent-tx);font-weight:600}
+  .bchart-cap{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+  .bchart-cap .lk{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+
+  .hl-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .hl{background:var(--card2);border:1px solid var(--line2);border-radius:12px;padding:13px}
+  .hl .k{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);line-height:1.3}
+  .hl .v{font-family:var(--mono);font-size:16px;font-weight:600;margin-top:7px;font-variant-numeric:tabular-nums}
+  .hl .v small{font-size:10px;color:var(--dim);font-weight:500}
+  @media(max-width:600px){.hl .v{font-size:14px}}
+
   /* skeletons */
   .skel{border-radius:8px;background:linear-gradient(90deg,#141414 25%,#1f1f1f 45%,#141414 65%);
     background-size:200% 100%;animation:shimmer 1.2s infinite}
@@ -503,6 +530,9 @@ const I18N = {
     chart_in:'поступления', chart_out:'расходы',
     cp_sent:'отпр.', cp_received:'получ.', ops_short:'оп.',
     ana_empty:'За этот период операций нет',
+    ana_balance:'Баланс за период', ana_vs:'к пред. 30д',
+    ana_limit:'KYC-лимит за 30 дней', ana_limit_left:'осталось', ana_limit_used:'использовано',
+    ana_highlights:'Сводка', hl_avg:'Средний расход / день', hl_biggest:'Крупнейшая операция', hl_active:'Активных дней',
   },
   uz:{
     doctitle:'Hamyon — raqamli hamyon',
@@ -559,6 +589,9 @@ const I18N = {
     chart_in:'tushum', chart_out:'chiqim',
     cp_sent:'yub.', cp_received:'qab.', ops_short:'am.',
     ana_empty:'Bu davr uchun amallar yo‘q',
+    ana_balance:'Davr balansi', ana_vs:'oldingi 30k ga',
+    ana_limit:'30 kunlik KYC limiti', ana_limit_left:'qoldi', ana_limit_used:'ishlatilgan',
+    ana_highlights:'Asosiy', hl_avg:'O‘rtacha sarf / kun', hl_biggest:'Eng katta amal', hl_active:'Faol kunlar',
   },
 };
 let LANG = localStorage.getItem('hamyon_lang') || 'ru';
@@ -824,6 +857,37 @@ const BD_META = {
   sent:    {key:'bd_sent',     dir:'out'},
 };
 
+function deltaChip(cur_, prev, goodUp){
+  if (!prev) return '';
+  const p = Math.round((cur_ - prev) / prev * 100);
+  const cls = p === 0 ? 'flat' : ((p > 0) === goodUp ? 'up' : 'down');
+  const arr = p > 0 ? '↑' : (p < 0 ? '↓' : '•');
+  return `<div class="delta ${cls}">${arr} ${Math.abs(p)}% <span class="vs">${t('ana_vs')}</span></div>`;
+}
+
+function balanceChart(a){
+  // running balance over the period, anchored to the current balance
+  const netTotal = a.in_total - a.out_total;
+  let run = (a.balance ?? netTotal) - netTotal;       // balance at the window start
+  const series = [run];
+  a.daily.forEach(d => { run += (d.in - d.out); series.push(run); });
+  const min = Math.min(...series), max = Math.max(...series);
+  const range = Math.max(1, max - min);
+  const W = 300, H = 100, pad = 6;
+  const X = i => pad + i * (W - 2 * pad) / (series.length - 1);
+  const Y = v => H - pad - (v - min) / range * (H - 2 * pad);
+  const line = series.map((v, i) => `${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join(' ');
+  const area = `${pad.toFixed(1)},${(H - pad).toFixed(1)} ${line} ${(W - pad).toFixed(1)},${(H - pad).toFixed(1)}`;
+  return `<div class="bchart-wrap">
+    <div class="bchart-cap"><span class="lk">${t('ana_balance')}</span><span class="bchart-val">${fmt(a.balance ?? 0)} ${cur()}</span></div>
+    <svg class="bchart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+      <defs><linearGradient id="bgrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="rgba(124,58,237,.38)"/><stop offset="1" stop-color="rgba(124,58,237,0)"/></linearGradient></defs>
+      <polygon points="${area}" fill="url(#bgrad)"/>
+      <polyline points="${line}" fill="none" stroke="var(--accent2)" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round"/>
+    </svg></div>`;
+}
+
 function renderAnalytics(a){
   if (a.in_total === 0 && a.out_total === 0){
     $('anaView').innerHTML = `<div class="empty"><div class="big">📊</div>${t('ana_empty')}</div>`;
@@ -834,10 +898,12 @@ function renderAnalytics(a){
   const maxBd = Math.max(1, ...a.breakdown.map(b => b.total));
   const bdRow = key => {
     const b = byKey[key], m = BD_META[key];
+    const denom = m.dir === 'in' ? a.in_total : a.out_total;
+    const share = denom ? Math.round(b.total / denom * 100) : 0;
     return `<div class="bd-row">
       <div class="bd-ico ${m.dir}">${m.dir === 'in' ? ICONS.in : ICONS.out}</div>
       <div class="bd-main">
-        <div class="bd-top"><span class="n">${t(m.key)}<span class="bd-cnt">${b.count} ${t('ops_short')}</span></span>
+        <div class="bd-top"><span class="n">${t(m.key)}<span class="bd-cnt">${b.count} ${t('ops_short')}</span><span class="bd-share">${share}%</span></span>
           <span class="bd-amt">${fmt(b.total)}</span></div>
         <div class="bd-bar ${m.dir}"><i style="width:${Math.round(b.total / maxBd * 100)}%"></i></div>
       </div></div>`;
@@ -851,13 +917,32 @@ function renderAnalytics(a){
       <div class="cp-main"><div class="cp-name">${cap(c.username)}</div>
         <div class="cp-sub"><span class="out">↑ ${fmt(c.sent)}</span> · <span class="in">↓ ${fmt(c.received)}</span> ${cur()}</div></div></div>`).join('');
 
+  // KYC gauge
+  const k = a.kyc || {};
+  const used = k.limit_30d ? Math.min(100, k.spent_30d / k.limit_30d * 100) : 0;
+  const gauge = `<div class="gauge">
+    <div class="gauge-top"><span class="lk">${t('ana_limit')}</span><span class="rk">${fmt(k.spent_30d || 0)} / ${fmt(k.limit_30d || 0)}</span></div>
+    <div class="gauge-bar"><i style="width:${used.toFixed(1)}%"></i></div>
+    <div class="gauge-sub"><span>${used.toFixed(used < 1 ? 1 : 0)}% ${t('ana_limit_used')}</span><span>${t('ana_limit_left')}: ${fmt(k.remaining_30d || 0)}</span></div></div>`;
+
+  // highlights
+  const avgOut = Math.round(a.out_total / (a.days || 30));
+  const biggest = Math.max(a.biggest_in || 0, a.biggest_out || 0);
+  const hl = `<div class="hl-grid">
+    <div class="hl"><div class="k">${t('hl_avg')}</div><div class="v">${fmt(avgOut)} <small>${cur()}</small></div></div>
+    <div class="hl"><div class="k">${t('hl_biggest')}</div><div class="v">${fmt(biggest)} <small>${cur()}</small></div></div>
+    <div class="hl"><div class="k">${t('hl_active')}</div><div class="v">${a.active_days || 0} <small>/ ${a.days || 30}</small></div></div></div>`;
+
   $('anaView').innerHTML = `
     <div class="ana-eyebrow">${t('ana_period')}</div>
     <div class="ana-stats">
-      <div class="ana-stat"><div class="k">${t('ana_in')}</div><div class="v v-in">${fmt(a.in_total)} <small>${cur()}</small></div></div>
-      <div class="ana-stat"><div class="k">${t('ana_out')}</div><div class="v v-out">${fmt(a.out_total)} <small>${cur()}</small></div></div>
+      <div class="ana-stat"><div class="k">${t('ana_in')}</div><div class="v v-in">${fmt(a.in_total)} <small>${cur()}</small></div>${deltaChip(a.in_total, a.prev_in_total, true)}</div>
+      <div class="ana-stat"><div class="k">${t('ana_out')}</div><div class="v v-out">${fmt(a.out_total)} <small>${cur()}</small></div>${deltaChip(a.out_total, a.prev_out_total, false)}</div>
       <div class="ana-stat"><div class="k">${t('ana_net')}</div><div class="v ${netCls}">${sign}${fmt(Math.abs(net))} <small>${cur()}</small></div></div>
     </div>
+    ${balanceChart(a)}
+    <div class="ana-eyebrow">${t('ana_highlights')}</div>${hl}
+    <div class="ana-eyebrow">${t('ana_limit')}</div>${gauge}
     <div class="ana-eyebrow">${t('ana_incoming')}</div>${bdRow('topup')}${bdRow('received')}
     <div class="ana-eyebrow">${t('ana_outgoing')}</div>${bdRow('withdraw')}${bdRow('sent')}
     <div class="ana-eyebrow">${t('ana_flow')}</div>

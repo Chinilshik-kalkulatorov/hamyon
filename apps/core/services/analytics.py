@@ -56,13 +56,36 @@ def get_wallet_analytics(wallet_id, days: int = 30) -> dict:
         {"key": "sent", "total": sent["total"], "count": sent["n"]},
     ]
 
+    # Previous window of the same length, for period-over-period deltas.
+    prev = LedgerEntry.objects.filter(
+        wallet_id=wallet_id, created_at__gte=start - timedelta(days=days), created_at__lt=start
+    ).aggregate(
+        pin=Coalesce(Sum("amount", filter=Q(type=t.CREDIT)), 0),
+        pout=Coalesce(Sum("amount", filter=Q(type=t.DEBIT)), 0),
+    )
+
+    biggest_in = entries.filter(type=t.CREDIT).order_by("-amount").values_list("amount", flat=True).first() or 0
+    biggest_out = entries.filter(type=t.DEBIT).order_by("-amount").values_list("amount", flat=True).first() or 0
+    active_days = (
+        entries.filter(type__in=[t.CREDIT, t.DEBIT])
+        .annotate(d=TruncDate("created_at")).values("d").distinct().count()
+    )
+
+    from .balance import get_wallet_balance
+
     return {
         "days": days,
+        "balance": get_wallet_balance(wallet_id, use_cache=False)["balance"],
         "in_total": agg["credit_total"],
         "out_total": agg["debit_total"],
         "net": agg["credit_total"] - agg["debit_total"],
         "in_count": agg["credit_n"],
         "out_count": agg["debit_n"],
+        "prev_in_total": prev["pin"],
+        "prev_out_total": prev["pout"],
+        "biggest_in": biggest_in,
+        "biggest_out": biggest_out,
+        "active_days": active_days,
         "breakdown": breakdown,
         "top_counterparties": _top_counterparties(wallet_id, start),
         "daily": _daily_series(entries, start, now, t),

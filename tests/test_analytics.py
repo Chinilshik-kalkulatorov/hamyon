@@ -75,6 +75,16 @@ def test_kyc_block_reflects_spending(alice, scenario, auth_client):
     assert kyc["remaining_30d"] == kyc["limit_30d"] - 50_000
 
 
+def test_analytics_extras(alice, scenario, auth_client):
+    data = auth_client(alice).get(f"/api/wallet/{scenario.id}/analytics/").data
+    assert data["balance"] == 55_000          # 105_000 in − 50_000 out
+    assert data["biggest_in"] == 100_000      # the topup
+    assert data["biggest_out"] == 30_000      # the cash-out
+    assert data["prev_in_total"] == 0         # nothing in the previous window
+    assert data["prev_out_total"] == 0
+    assert data["active_days"] == 1           # all created today
+
+
 def test_analytics_is_owner_scoped(bob, alice_wallet, auth_client):
     """A stranger gets 404, not someone else's analytics."""
     r = auth_client(bob).get(f"/api/wallet/{alice_wallet.id}/analytics/")
