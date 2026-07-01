@@ -258,16 +258,6 @@
   .hl .v small{font-size:10px;color:var(--dim);font-weight:500}
   @media(max-width:600px){.hl .v{font-size:14px}}
 
-  /* history toolbar (date range + export) */
-  .htools{display:flex;align-items:center;gap:8px;margin:2px 0 6px;flex-wrap:wrap}
-  .hdate{width:auto;padding:6px 10px;border-radius:10px;font-family:var(--mono);font-size:12px;
-    color-scheme:dark;background:var(--card2);border:1px solid var(--line2);color:var(--muted)}
-  .hdate:focus{border-color:var(--accent2)}
-  .hdash{color:var(--dim)}
-  .hexport{margin-left:auto;color:var(--muted)}
-  .hexport:hover{border-color:var(--accent2);color:var(--accent-tx)}
-  .hclear{color:var(--muted)}
-
   /* analytics period pills + loading skeleton */
   .pchips{display:flex;gap:8px;margin:0 0 4px}
   .pchip{padding:6px 14px;border-radius:999px;font-size:11px;font-family:var(--mono);background:var(--card2);
@@ -492,13 +482,6 @@
           <button class="fchip" data-f="hold" data-i18n="f_hold">Заморозки</button>
           <button class="fchip" data-f="reversal" data-i18n="f_reversal">Разморозки</button>
         </div>
-        <div class="htools">
-          <input type="date" id="hFrom" class="hdate" onchange="reloadHistory()">
-          <span class="hdash">—</span>
-          <input type="date" id="hTo" class="hdate" onchange="reloadHistory()">
-          <button class="fchip hclear hidden" id="hClear" onclick="clearDates()" data-i18n="clear">сбросить</button>
-          <button class="fchip hexport" id="hExport" onclick="busy(this,exportCsv)" data-i18n="export_csv">Экспорт CSV</button>
-        </div>
         <div id="hList">
           <div class="hitem"><div class="skel" style="width:42px;height:42px"></div><div class="ht"><div class="skel" style="width:140px;height:14px;margin-bottom:6px"></div><div class="skel" style="width:80px;height:10px"></div></div><div class="skel" style="width:90px;height:16px"></div></div>
           <div class="hitem"><div class="skel" style="width:42px;height:42px"></div><div class="ht"><div class="skel" style="width:160px;height:14px;margin-bottom:6px"></div><div class="skel" style="width:70px;height:10px"></div></div><div class="skel" style="width:80px;height:16px"></div></div>
@@ -575,7 +558,7 @@ const I18N = {
     ana_balance:'Баланс за период', ana_vs:'к пред. 30д',
     ana_limit:'KYC-лимит за 30 дней', ana_limit_left:'осталось', ana_limit_used:'использовано',
     ana_highlights:'Сводка', hl_avg:'Средний расход / день', hl_biggest:'Крупнейшая операция', hl_active:'Активных дней',
-    export_csv:'Экспорт CSV', export_queued:'Экспорт запущен — ссылка придёт в Telegram', clear:'сбросить', days_short:'д',
+    days_short:'д',
     txn_when:'Дата и время', txn_status:'Статус', txn_id:'ID операции', txn_wallet:'Кошелёк', txn_posted:'Проведено',
     ob_title:'Добро пожаловать 👋', ob_sub:'Три вещи, с которых стоит начать:',
     ob_1n:'Пополни кошелёк', ob_1d:'Кнопка «Пополнить» — баланс сразу обновится.',
@@ -641,7 +624,7 @@ const I18N = {
     ana_balance:'Davr balansi', ana_vs:'oldingi 30k ga',
     ana_limit:'30 kunlik KYC limiti', ana_limit_left:'qoldi', ana_limit_used:'ishlatilgan',
     ana_highlights:'Asosiy', hl_avg:'O‘rtacha sarf / kun', hl_biggest:'Eng katta amal', hl_active:'Faol kunlar',
-    export_csv:'CSV eksport', export_queued:'Eksport boshlandi — havola Telegramga keladi', clear:'tozalash', days_short:'k',
+    days_short:'k',
     txn_when:'Sana va vaqt', txn_status:'Holat', txn_id:'Amal ID', txn_wallet:'Hamyon', txn_posted:'Bajarildi',
     ob_title:'Xush kelibsiz 👋', ob_sub:'Boshlash uchun uchta narsa:',
     ob_1n:'Hamyonni to‘ldiring', ob_1d:'«To‘ldirish» tugmasi — balans darhol yangilanadi.',
@@ -869,25 +852,8 @@ async function loadMore(){
 function fetchHistory(cursor){
   let q = `/wallet/${S.wallet.id}/history/?page_size=9`;
   if (S.filter) q += '&type=' + S.filter;
-  const f = $('hFrom') && $('hFrom').value, tt = $('hTo') && $('hTo').value;
-  if (f)  q += '&from=' + encodeURIComponent(f + 'T00:00:00');
-  if (tt) q += '&to='   + encodeURIComponent(tt + 'T23:59:59');
-  if ($('hClear')) $('hClear').classList.toggle('hidden', !(f || tt));
   if (cursor) q += '&cursor=' + encodeURIComponent(cursor);
   return api(q);
-}
-
-function clearDates(){
-  if ($('hFrom')) $('hFrom').value = '';
-  if ($('hTo')) $('hTo').value = '';
-  reloadHistory();
-}
-
-async function exportCsv(){
-  try{
-    await api(`/wallet/${S.wallet.id}/history/export/`, {method:'POST'});
-    toast(t('export_queued'));
-  }catch(e){ toast(e.message, true); }
 }
 
 function renderHistory(items, replace){
