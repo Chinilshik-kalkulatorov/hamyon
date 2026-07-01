@@ -2,6 +2,7 @@ from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.response import Response
+from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
 
 from apps.core.api import map_domain_errors
@@ -27,6 +28,9 @@ def _qr_error_response(exc):
 
 
 class TransferInitiateView(APIView):
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "transfer"
+
     @map_domain_errors
     def post(self, request):
         serializer = TransferInitiateSerializer(data=request.data)
@@ -64,6 +68,9 @@ class TransferInitiateView(APIView):
 
 
 class TransferConfirmView(APIView):
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "transfer"
+
     @map_domain_errors
     def post(self, request, pk):
         serializer = OTPCodeSerializer(data=request.data)

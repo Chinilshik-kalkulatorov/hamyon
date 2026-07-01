@@ -2,6 +2,7 @@ from django.http import Http404
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.response import Response
+from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
 
 from apps.core.api import map_domain_errors
@@ -17,6 +18,9 @@ from .serializers import (
 
 
 class PaymentInitiateView(APIView):
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "payment"
+
     @map_domain_errors
     def post(self, request):
         serializer = PaymentInitiateSerializer(data=request.data)
@@ -40,6 +44,9 @@ class PaymentInitiateView(APIView):
 
 
 class PaymentConfirmView(APIView):
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "payment"
+
     @map_domain_errors
     def post(self, request, pk):
         serializer = OTPCodeSerializer(data=request.data)

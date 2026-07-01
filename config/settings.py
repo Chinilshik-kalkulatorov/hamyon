@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     "apps.p2p",
     "apps.history",
     "apps.notifications",
+    "apps.audit",
 ]
 
 MIDDLEWARE = [
@@ -40,6 +41,8 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     # Blacklist gate: rejects blocked users/wallets before any transaction view runs.
     "apps.blacklist.middleware.BlacklistMiddleware",
+    # Audit trail of mutating API calls (records in the response phase).
+    "apps.audit.middleware.AuditMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -104,6 +107,10 @@ REST_FRAMEWORK = {
         "anon": os.getenv("THROTTLE_ANON", "40/min"),
         "user": os.getenv("THROTTLE_USER", "240/min"),
         "login": os.getenv("THROTTLE_LOGIN", "10/min"),
+        # Tight per-user limits on money-moving endpoints (initiate + confirm
+        # share the scope). Applied via ScopedRateThrottle on those views.
+        "payment": os.getenv("THROTTLE_PAYMENT", "20/min"),
+        "transfer": os.getenv("THROTTLE_TRANSFER", "20/min"),
     },
 }
 
